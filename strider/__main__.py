@@ -2,29 +2,15 @@ import argparse
 import textwrap
 import importlib
 import warnings
+import sys
 from collections import ChainMap
 from collections.abc import Mapping
 
 import cv2
+import strider
 
-try:
-    from __dev__ import __dev__
-except ImportError:
-    __dev__ = False
-else:
-    assert __dev__
-    import sys
+if strider.__dev__:
     print('you are using a development version of strider, install and use a release version', file=sys.stderr)
-
-
-if __dev__:
-    # if we are in dev mode, import strider form the local directory before any installed site-package
-    import sys
-    sys.path.insert(0, '.')
-    import strider
-    assert strider.__dev__  # make sure the imported strider is dev
-else:
-    import strider
 
 
 class Calibrate(argparse.Action):
