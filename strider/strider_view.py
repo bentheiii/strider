@@ -14,8 +14,8 @@ class StriderView:
     A bit of a borg class but it just co-ordinates between the video and the tracks so no real worries
     """
 
-    def __init__(self, *, pack_path=None, video_source_path, active_track=None, view_window=..., play_step_frame=1,
-                 seek_step_sec=1, line_width=2, point_radius=5, detection_radius: int = ...):
+    def __init__(self, *, pack_path=None, video_source_path, active_track=None, view_window: Rectangle=...
+                 , play_step_frame=1, seek_step_sec=1, line_width=2, point_radius=5, detection_radius: int = ...):
         self.play_step_frame = play_step_frame
         self.seek_step_seconds = seek_step_sec
         self.video_source = cv2.VideoCapture(video_source_path)
@@ -45,7 +45,7 @@ class StriderView:
         if view_window is ...:
             view_window = self.real_view
 
-        self.view_window = view_window
+        self.view_window: Rectangle = view_window
 
         self.active_track: Track = None
         self.activate_track(active_track)
@@ -140,19 +140,14 @@ class StriderView:
     def move_view(self, x_off=0, y_off=0):
         self.view_window = self.view_window.move(x_off, y_off, master=self.real_view)
 
-    def zoom_in(self, factor: int):
-        view = self.view_window // factor
-        self.view_window = view
+    def zoom_in(self, factor: float):
+        self.view_window = self.view_window.zoom_to_center(factor)
 
     def zoom_out(self, factor: int):
         # note, if the view too near the real border, zoom_out will zoom out all the way to the real
         # (this is actually useful since if you're right near the border, you probably finished
         # a track and would like to zoom out all the way)
-        view = self.view_window.undiv(factor, master=self.real_view)
-        self.view_window = view
-
-    def is_zoomed(self):
-        return self.view_window is not self.real_view
+        self.view_window = self.view_window.zoom_from_center(factor, master=self.real_view)
 
     # note: seek, backstep, and reset all clear the frame cache, get_next_frame() must be called after
     # them before any work is to be done
@@ -227,6 +222,19 @@ class StriderView:
 
         track.tags.add(tag)
         return track
+
+    def remove_tag(self, track=..., *, tag: str):
+        if track is ...:
+            track = self.active_track
+        if isinstance(track, str):
+            track = self.track_pack[track]
+
+        try:
+            track.tags.remove(tag)
+        except KeyError:
+            tag = None
+
+        return track, tag
 
     def enable_all(self, tag=None):
         if tag:

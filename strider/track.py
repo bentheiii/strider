@@ -8,6 +8,7 @@ from sortedcontainers import SortedDict
 class PointOverrideException(Exception):
     pass
 
+
 @total_ordering
 class Track:
     @staticmethod
@@ -55,6 +56,7 @@ class Track:
         keys = self.points.irange(maximum=frame, inclusive=(True, False))
         # A SortedDict is just a b-list with a dict attached
         # so this is really the most efficient way to get an irange with values.
+        # https://stackoverflow.com/questions/34099308/iterate-over-a-slice-of-items-in-a-sorteddict
         return ((k, self.points[k]) for k in keys)
 
     def add(self, frame, point):
@@ -107,7 +109,7 @@ class Track:
         """
         ret = [str(self), ': ', str(len(self.points)), ' points']
         if self.points:
-            ret.extend([', frame range: ', str(self.key_span()), ', value range: ', str(self.value_span()),])
+            ret.extend([', frame range: ', str(self.key_span()), ', value range: ', str(self.value_span()), ])
         if self.tags:
             ret.extend([', tags: ', '[', ', '.join(self.tags), ']'])
         for k, v in kwargs.items():

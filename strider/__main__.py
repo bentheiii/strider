@@ -308,8 +308,8 @@ def main(args=None):
             ('video dimensions', view.real_view.size),
             ('video fps', view.fps),
             ('view rectangle', repr(view.view_window)),
-            ('zoom', 'x'+str(view.real_view / view.view_window)),
-            ('quick tags', ','.join(strider.tag_names(quick_tags))),
+            ('zoom', 'x'+str(view.real_view.size_ratio(view.view_window))),
+            ('quick tags', ', '.join(strider.tag_names(quick_tags))),
         )
         return 'INFO:\n' + '\n'.join(f'\t{n}: {v}' for n, v in d)
 
@@ -375,10 +375,28 @@ def main(args=None):
     def tag(tag, tid=None):
         """Give a track a specified tag"""
         if tid is None:
+            if not view.active_track:
+                print('no active track')
+                return
             tid = ...
         tag = tag.lower()
         t = view.add_tag(tid, tag=tag)
         print(f'tag {tag} added to {t}')
+
+    @strider.SpecialCommand
+    def remove_tag(tag, tid=None):
+        """Remove a specified tag from a track"""
+        if tid is None:
+            if not view.active_track:
+                print('no active track')
+                return
+            tid = ...
+        tag = tag.lower()
+        t, tag = view.remove_tag(tid, tag=tag)
+        if t:
+            print(f'tag {tag} removed from {t}')
+        else:
+            print(f'track {t} doesn\'t have tag {tag}')
 
     @strider.SpecialCommand
     def enable_tag(tag):

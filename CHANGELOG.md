@@ -8,6 +8,7 @@
 * right-arrow to jump forward by 1 sec
 * all deprecated arguments are now listed
 * info now also displays the view rectangle, and the zoom level
+* remove_tag special command
 ### Changed
 * quick tags are now sorted and the keys are deterministic
 * q and shift+q used without quick tags now automatically target all tracks
