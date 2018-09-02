@@ -65,4 +65,9 @@ The Output file (the track file given in the arguments) is meant to be easy to r
     * "tags": a list of tags associated to the track
     * "point": a list of points of the track, each point is a list:
         * \[0]: the index of the frame where the point appeared
-        * \[1]: a list representing the x,y coordinates of the point in pixels 
+        * \[1]: a list representing the x, y coordinates of the point in pixels 
+
+
+## Known Issues
+* When zoomed in, lines between points will only appear if at least one of the points is visible
+* When zooming out near the border of the video, the window will zoom out completely.

@@ -63,14 +63,19 @@ class KeyCommand(Registry):
         self._update_doc()
         self.__func__ = func
         super().__init__()
+        self.allow_on_auto_play = False
 
     def __call__(self, *args, **kwargs):
         return self.__func__(*args, **kwargs)
 
 
-def key_command(codes: Union[Iterable[int], int, str]):
+def key_command(codes: Union[Iterable[int], int, str], **kwargs):
     """A KeyCommand wrapper to be used as a decorator"""
-    return partial(KeyCommand, codes)
+    def ret(func):
+        kc = KeyCommand(codes, func)
+        kc.__dict__.update(kwargs)
+        return kc
+    return ret
 
 
 class SpecialCommand(Registry):

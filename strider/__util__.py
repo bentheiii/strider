@@ -30,8 +30,8 @@ class Registry(ABC):
         self.register()
 
     @classmethod
-    def get(cls, item):
-        return cls._registered[item]
+    def get(cls, item, default=None):
+        return cls._registered.get(item, default)
 
     @classmethod
     def values(cls):

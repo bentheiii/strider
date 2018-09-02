@@ -245,3 +245,9 @@ class StriderView:
             self.track_pack.disable_all()
             if self.active_track:
                 self.track_pack.enable_track(self.active_track)
+
+    def tracks_sorted(self):
+        if self.active_track:
+            yield self.active_track
+        yield from filter(lambda x: x is not self.active_track, sorted(self.track_pack.enabled()))
+        yield from sorted(self.track_pack.disabled())

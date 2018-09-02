@@ -54,6 +54,7 @@ class DeprecatedAction(argparse.Action):
     """
     Informs the user the option has been deprecated
     """
+
     def __init__(self, *args, use_instead: str, **kwargs):
         super().__init__(*args, **kwargs)
         self.use_instead = use_instead
@@ -397,6 +398,7 @@ def main(args=None):
         if next_frame() is None:
             print('end of video')
         if args.force_flush:  # todo look more into why we need this (for 4k videos)
+            # https://stackoverflow.com/questions/52038222/opencv-python-window-not-refreshing-4k-videos-unless-calling-waitkey1
             cv2.waitKey(1)
 
     @strider.key_command(Codes.left)
@@ -411,42 +413,42 @@ def main(args=None):
         view.fore_step()
         next_frame()
 
-    @strider.key_command(Codes.z)
+    @strider.key_command(Codes.z, allow_on_auto_play=True)
     def zoom_in():
         """Zoom in x2, or amount specified in the arguments"""
         view.zoom_in(zoom_step)
         this_frame()
 
-    @strider.key_command(Codes.shift_z)
+    @strider.key_command(Codes.shift_z, allow_on_auto_play=True)
     def zoom_out():
         """Zoom out x2, or amount specified in the arguments"""
         view.zoom_out(zoom_step)
         this_frame()
 
-    @strider.key_command(Codes.esc)
+    @strider.key_command(Codes.esc, allow_on_auto_play=True)
     def quit():
         """Exit the program"""
         return True
 
-    @strider.key_command(Codes.a)
+    @strider.key_command(Codes.a, allow_on_auto_play=True)
     def move_left():
         """Move the view left 10 pixels, or amount specified in the arguments"""
         view.move_view(x_off=-args.move_step)
         this_frame()
 
-    @strider.key_command(Codes.d)
+    @strider.key_command(Codes.d, allow_on_auto_play=True)
     def move_right():
         """Move the view right 10 pixels, or amount specified in the arguments"""
         view.move_view(x_off=args.move_step)
         this_frame()
 
-    @strider.key_command(Codes.w)
+    @strider.key_command(Codes.w, allow_on_auto_play=True)
     def move_up():
         """Move the view up 10 pixels, or amount specified in the arguments"""
         view.move_view(y_off=-args.move_step)
         this_frame()
 
-    @strider.key_command(Codes.s)
+    @strider.key_command(Codes.s, allow_on_auto_play=True)
     def move_down():
         """Move the view down 10 pixels, or amount specified in the arguments"""
         view.move_view(y_off=args.move_step)
@@ -485,7 +487,7 @@ def main(args=None):
     def list_tracks():
         """List all the tracks, and some information about them"""
         ret = [f'TRACKS ({len(view.track_pack.tracks)} total):']
-        for t in view.track_pack.tracks.values():
+        for t in view.tracks_sorted():
             stats = t.stats(enabled=str(view.track_pack.is_enabled(t)), active=view.active_track is t)
             ret.append(f'\t{stats}')
         print('\n'.join(ret))
@@ -570,10 +572,10 @@ def main(args=None):
 
     @strider.key_command(Codes.tab)
     def start_auto_play():
-        """Enable auto-play, will continue the video until a key is pressed"""
+        """Enable auto-play, will continue the video until a key is pressed. Some keys (zoom, move zoomed rectangle, ...) will not stop the autoplay"""
         nonlocal auto_play
         auto_play = True
-        print("started auto-play, press any key to end")
+        print("started auto-play, press tab again to end")
 
     @strider.key_command(Codes.c)
     def special_command():
@@ -609,22 +611,26 @@ def main(args=None):
     while True:
         if auto_play:
             key = cv2.waitKeyEx(1)
-            if key == -1:  # no key was pressed
-                next_frame()
-            else:
+            comm = strider.KeyCommand.get(key)  # comm will be None if no key button was pressed
+            end_auto_play = comm and not comm.allow_on_auto_play
+            if end_auto_play:
                 auto_play = False
                 print('ended auto-play')
+            else:
+                if comm:
+                    if comm():
+                        break
+                else:
+                    next_frame()
         else:
             key = cv2.waitKeyEx()
-            try:
-                comm = strider.KeyCommand.get(key)
-            except KeyError:
+            comm = strider.KeyCommand.get(key)
+            if not comm:
                 print('unhandled key code ' + str(key)
                       + ' if this is supposed to be a valid key, run the calibration command (strider --calibrate) '
                         'to run calibration')
-            else:
-                if comm():
-                    break
+            elif comm():
+                break
 
 
 cv2.destroyAllWindows()

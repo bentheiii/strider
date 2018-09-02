@@ -7,5 +7,4 @@ from strider.line_edit import LineEdit
 
 __dev__ = "dev" in __version__
 
-# todo bug
-# todo allow moving window/ zooming during auto-play
+# todo bug: sometimes an extra point appears randomly after the track is saved (i suspect the user simply pressed the windows by accident, but worth checking anyway)

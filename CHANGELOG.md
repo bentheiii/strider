@@ -14,10 +14,9 @@
 * --back_step has been changed to --seek_step, to accommodate forward steps
 * right arrow no longer advanced by 1 frame, now advanced by 1 sec
 * all tags are converted to lowercase, tags are to be considered case-insensitive from this point
+* the tracks listed when using t are now sorted, first by active, then by enabled, then by id
 ### Fixed
 * crash when q and shift+q was used without any quick tags.
-### Minor
-* Reordered the argument aliases
 ## 0.6.3- 02/09/2018
 ### Added
 * added --raise flag to raise exceptions in normally catching environments (currently, only special command execution)
