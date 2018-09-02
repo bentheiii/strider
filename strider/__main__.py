@@ -3,6 +3,7 @@ import textwrap
 import importlib
 import warnings
 import sys
+import itertools as it
 from collections import ChainMap
 from collections.abc import Mapping
 
@@ -49,26 +50,41 @@ class Calibrate(argparse.Action):
         exit()
 
 
+class DeprecatedAction(argparse.Action):
+    """
+    Informs the user the option has been deprecated
+    """
+    def __init__(self, *args, use_instead: str, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.use_instead = use_instead
+
+    def __call__(self, parser_, namespace, values, option_string=None):
+        warnings.warn(DeprecationWarning(
+            f'{option_string} is deprecated, use {self.use_instead} instead, argument ignored'))
+
+
 parser = argparse.ArgumentParser('strider')
 parser.add_argument('src_path', action='store', help='path to the source video')
 parser.add_argument('tracks_path', action='store', help='path to the trackpack file')
-parser.add_argument('-t', '--tags', action='store', nargs='+', type=str, help='path to a quick tags file', required=False,
-                    default=[], dest='quick_tags_path')
-parser.add_argument('--step', action='store', type=int, help='set the regular step speed in frames, default 1',
+parser.add_argument('-t', '--tags', action='store', nargs='+', type=str, help='path to a quick tags file',
+                    required=False, default=[], dest='quick_tags_path')
+parser.add_argument('-qt', action='store', nargs='+', type=str, help='quick tags to add', required=False,
+                    default=[], dest='quick_tags')
+parser.add_argument('--frame_step', action='store', type=int, help='set the regular play speed in frames, default 1',
                     default=1, required=False, dest='step')
-parser.add_argument('--back_step', '--backstep', action='store', type=float,
-                    help='set the regular backwards step speed in seconds, default 1',
-                    default=1, required=False, dest='back_step')
-parser.add_argument('--move_step', '--movestep', action='store', type=int,
+parser.add_argument('--seek_step', action='store', type=float,
+                    help='set the regular step in seconds, default 1',
+                    default=1, required=False, dest='seek_step')
+parser.add_argument('--move_step', action='store', type=int,
                     help='the size, in pixels, of movement of the zoomed view, default 10',
                     default=10, required=False, dest='move_step')
-parser.add_argument('--zoom_step', '--zoomstep', action='store', type=float, help='the zoom step, default x2',
+parser.add_argument('--zoom_step', action='store', type=float, help='the zoom step, default x2',
                     default=2, required=False, dest='zoom_step')
-parser.add_argument('--point_radius', '--pointradius', action='store', type=int, help='the radius of points, default 5',
+parser.add_argument('--point_radius', action='store', type=int, help='the radius of points, default 5',
                     default=5, required=False, dest='point_radius')
-parser.add_argument('--line_width', '--linewidth', action='store', type=int, help='the width of lines, default 2',
+parser.add_argument('--line_width', action='store', type=int, help='the width of lines, default 2',
                     default=2, required=False, dest='line_width')
-parser.add_argument('--force_flush', '--forceflush', action='store_true', dest='force_flush', required=False,
+parser.add_argument('--force_flush', action='store_true', dest='force_flush', required=False,
                     default=False, help='set to force flushing on every frame (useful for 4k videos)')
 # raise is always true in dev mode
 parser.add_argument('--raise', action='store_true', default=strider.__dev__, required=False, dest='raise_',
@@ -79,6 +95,12 @@ parser.add_argument('--calibrate', action=Calibrate, nargs='?', choices=['all'],
                     help='run the calibration process and exit,'
                          ' entering --calibrate all will also calibrate the common ascii keys')
 parser.add_argument('--version', action='version', version=strider.__version__)
+
+# deprecated (do not end the program)
+parser.add_argument('--step', action=DeprecatedAction, use_instead='--frame_step')
+parser.add_argument('--back_step', '--backstep', action=DeprecatedAction, use_instead='--seek_step')
+parser.add_argument('--linewidth', action=DeprecatedAction, use_instead='--line_width')
+parser.add_argument('--pointradius', action=DeprecatedAction, use_instead='--point_radius')
 
 
 class Codes:
@@ -94,6 +116,7 @@ class Codes:
     backspace = 8
     space = ord(' ')
     enter = ord('\r')
+    tab = ord('\t')
 
     a = ord('a')
     c = ord('c')
@@ -148,6 +171,9 @@ def main(args=None):
     # to disable clicks while we don't want them (e.g. when entering special commands)
     suppress_click = False
 
+    # to tell if we should even wait for keystroke
+    auto_play = False
+
     user_codes = maybe_import('__calibration__', '__codes__', dict, {})
     for name, v in user_codes.items():
         if not hasattr(Codes, name):
@@ -156,17 +182,19 @@ def main(args=None):
 
     strider.KeyCommand.code_dict = Codes.__dict__
 
-    quick_tags = None
+    quick_tags = set(x.lower() for x in args.quick_tags)
     if args.quick_tags_path:
-        quick_tags_set = set()
         for qtp in args.quick_tags_path:
             with open(qtp) as r:
-                r = (x.strip() for x in r)
-                quick_tags_set.update(r)
-        quick_tags, num = strider.resolve_quick_tags(quick_tags_set)
+                r = (x.lower().strip() for x in r)
+                quick_tags.update(r)
+    if quick_tags:
+        quick_tags, num = strider.resolve_quick_tags(sorted(quick_tags))
         print(f'loaded {num} quick tags')
         if not num:
             quick_tags = None
+    else:
+        quick_tags = None
 
     def get_cv_input(prompt):
         nonlocal suppress_click
@@ -198,7 +226,13 @@ def main(args=None):
         suppress_click = False
         return ret
 
-    def get_quick_tag(additional_codes={}):
+    no_default = object()  # singleton to fail on no tags
+
+    def get_quick_tag(additional_codes={}, default=no_default):
+        if not quick_tags:
+            if default is no_default:
+                raise Exception('no quick tags are configured')
+            return default
         print('QUICK TAGS:')
         tag_dict = ChainMap(quick_tags, additional_codes)
         while isinstance(tag_dict, Mapping):
@@ -277,11 +311,17 @@ def main(args=None):
         return 'INFO:\n' + '\n'.join(f'\t{n}: {v}' for n, v in d)
 
     def help_msg():
-        return '\n'.join(kc.__doc__ for kc in strider.KeyCommand.values_distinct())
+        additional_help = [
+            "left click: add a point, at the current frame, to the active track",
+            "right click: list the point(s) at the clicked area"
+        ]
+        return '\n'.join(it.chain(
+            additional_help,
+            (kc.__doc__ for kc in strider.KeyCommand.values_distinct())
+        ))
 
     def report_jump(frame):
         print(f'jumped to frame {frame}, approx {view.approx_frame_to_time(frame,True)} time')
-
 
     @strider.SpecialCommand
     def toggle_track(tid):
@@ -333,22 +373,25 @@ def main(args=None):
         """Give a track a specified tag"""
         if tid is None:
             tid = ...
+        tag = tag.lower()
         t = view.add_tag(tid, tag=tag)
         print(f'tag {tag} added to {t}')
 
     @strider.SpecialCommand
     def enable_tag(tag):
         """Enable all tracks with a tag"""
+        tag = tag.lower()
         view.enable_all(tag)
         print(f'all tracks with tag {tag} enabled')
 
     @strider.SpecialCommand
     def disable_tag(tag):
         """Disable all tracks with a tag"""
+        tag = tag.lower()
         view.disable_all(tag)
         print(f'all tracks with tag {tag} disabled (except for active track)')
 
-    @strider.key_command((Codes.right, Codes.space))
+    @strider.key_command(Codes.space)
     def step_forward():
         """Step forward one frame, or amount specified in the arguments"""
         if next_frame() is None:
@@ -358,8 +401,14 @@ def main(args=None):
 
     @strider.key_command(Codes.left)
     def step_backwards():
-        """Step backwards half a second, or amount specified in the arguments"""
+        """Step backwards a second, or amount specified in the arguments"""
         view.back_step()
+        next_frame()
+
+    @strider.key_command(Codes.right)
+    def step_forwards():
+        """Step forwards a second, or amount specified in the arguments"""
+        view.fore_step()
         next_frame()
 
     @strider.key_command(Codes.z)
@@ -496,7 +545,7 @@ def main(args=None):
     @strider.key_command(Codes.q)
     def batch_enable():
         """Enable tracks by a specified quick tag (or space to enable all)"""
-        t = get_quick_tag({Codes.space: ('space', '<all>', ...)})
+        t = get_quick_tag({Codes.space: ('space', '<all>', ...)}, default=...)
         if t is ...:
             view.enable_all()
             print('all tracks enabled')
@@ -509,7 +558,7 @@ def main(args=None):
     @strider.key_command(Codes.shift_q)
     def batch_disable():
         """Disable tracks by quick tag (or space to enable all), except the active track, if it exists"""
-        t = get_quick_tag({Codes.space: ('space', '<all>', ...)})
+        t = get_quick_tag({Codes.space: ('space', '<all>', ...)}, default=...)
         if t is ...:
             view.disable_all()
             print('all tracks disabled (except for active track)')
@@ -518,6 +567,13 @@ def main(args=None):
         else:
             disable_tag(t)
         this_frame()
+
+    @strider.key_command(Codes.tab)
+    def start_auto_play():
+        """Enable auto-play, will continue the video until a key is pressed"""
+        nonlocal auto_play
+        auto_play = True
+        print("started auto-play, press any key to end")
 
     @strider.key_command(Codes.c)
     def special_command():
@@ -541,7 +597,7 @@ def main(args=None):
     zoom_step = args.zoom_step
 
     view = strider.StriderView(pack_path=args.tracks_path, video_source_path=args.src_path,
-                               forward_step=args.step, back_step_sec=args.back_step,
+                               play_step_frame=args.step, seek_step_sec=args.seek_step,
                                line_width=args.line_width, point_radius=args.point_radius)
     view.track_pack.enable_all()
 
@@ -551,16 +607,24 @@ def main(args=None):
     next_frame()
 
     while True:
-        key = cv2.waitKeyEx()
-        try:
-            comm = strider.KeyCommand.get(key)
-        except KeyError:
-            print('unhandled key code ' + str(key)
-                  + ' if this is supposed to be a valid key, run the calibration command (strider --calibrate) '
-                    'to run calibration')
+        if auto_play:
+            key = cv2.waitKeyEx(1)
+            if key == -1:  # no key was pressed
+                next_frame()
+            else:
+                auto_play = False
+                print('ended auto-play')
         else:
-            if comm():
-                break
+            key = cv2.waitKeyEx()
+            try:
+                comm = strider.KeyCommand.get(key)
+            except KeyError:
+                print('unhandled key code ' + str(key)
+                      + ' if this is supposed to be a valid key, run the calibration command (strider --calibrate) '
+                        'to run calibration')
+            else:
+                if comm():
+                    break
 
 
 cv2.destroyAllWindows()

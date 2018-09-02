@@ -24,8 +24,8 @@ Strider is a pure-python program and module to view and manually track objects a
 ### Tags
 * Tracks can have tags that make categorizing them easier.
 * Each track can have any subset of tags.
-* Tags are simply strings and can be of any form.
-    * Though it is highly recommended that tags have at least one english letter.
+* Tags are simply strings and can be of any form, although all tags are converted to lowercase.
+    * It is highly recommended that tags have at least one english letter.
 * Aside from this, a program can have quick tags. These are tags that can be quickly applied and filtered.
     * Quick tags can be added as an argument with the flag ```-qt bee fly butterfly```
     * Quick tags can also be loaded from a file ```-t tags.txt``` Where tags.txt can be:

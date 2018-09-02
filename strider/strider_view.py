@@ -14,10 +14,10 @@ class StriderView:
     A bit of a borg class but it just co-ordinates between the video and the tracks so no real worries
     """
 
-    def __init__(self, *, pack_path=None, video_source_path, active_track=None, view_window=..., forward_step=1,
-                 back_step_sec=1, line_width=2, point_radius=5, detection_radius: int = ...):
-        self.forward_step_frame = forward_step
-        self.back_step_seconds = back_step_sec
+    def __init__(self, *, pack_path=None, video_source_path, active_track=None, view_window=..., play_step_frame=1,
+                 seek_step_sec=1, line_width=2, point_radius=5, detection_radius: int = ...):
+        self.play_step_frame = play_step_frame
+        self.seek_step_seconds = seek_step_sec
         self.video_source = cv2.VideoCapture(video_source_path)
         self.line_width = line_width
         self.point_radius = point_radius
@@ -80,12 +80,12 @@ class StriderView:
     def get_next_frame(self):
         if not self.video_source.isOpened():
             raise Exception("Error opening video stream or file")
-        for _ in range(self.forward_step_frame):
+        for _ in range(self.play_step_frame):
             success = self.video_source.grab()
             if not success:
                 return None
         _, frame = self.video_source.retrieve()
-        self.next_frame_index += self.forward_step_frame
+        self.next_frame_index += self.play_step_frame
         self.this_frame = frame
         return frame
 
@@ -119,7 +119,7 @@ class StriderView:
             track = self.track_pack[track]
 
         if frame is ...:
-            frame = self.next_frame_index - self.forward_step_frame
+            frame = self.next_frame_index - self.play_step_frame
         point = self.view_window.local_to_real(*local_point)
         assert point is not None
         track.add(frame, point)
@@ -159,8 +159,14 @@ class StriderView:
 
     def back_step(self, amount=...):
         if amount is ...:
-            amount = int(self.fps * self.back_step_seconds)
+            amount = int(self.fps * self.seek_step_seconds)
         next_frame_index = max(self.next_frame_index - amount, 0)
+        self.seek(next_frame_index)
+
+    def fore_step(self, amount=...):
+        if amount is ...:
+            amount = int(self.fps * self.seek_step_seconds)
+        next_frame_index = min(self.next_frame_index + amount, self.total_frames-1)
         self.seek(next_frame_index)
 
     def reset(self):
@@ -184,7 +190,7 @@ class StriderView:
         return hours, minutes, seconds, sub_sec
 
     def curr_time_approx(self, round_=False):
-        return self.approx_frame_to_time(self.next_frame_index - self.forward_step_frame, round_=round_)
+        return self.approx_frame_to_time(self.next_frame_index - self.play_step_frame, round_=round_)
 
     def total_time_approx(self, round_=False):
         return self.approx_frame_to_time(self.total_frames, round_=round_)
@@ -198,7 +204,7 @@ class StriderView:
         if isinstance(track, str):
             track = self.track_pack[track]
         try:
-            return track.del_point_floor(self.next_frame_index - self.forward_step_frame)
+            return track.del_point_floor(self.next_frame_index - self.play_step_frame)
         except KeyError:
             return None
 

@@ -3,6 +3,19 @@
 ### Added
 * Official copyright notice
 * README
+* -qt argument to add quick tags in the arguments
+* press tab to enable auto-play
+* right-arrow to jump forward by 1 sec
+* all deprecated arguments are now listed
+### Changed
+* quick tags are now sorted and the keys are deterministic
+* q and shift+q used without quick tags now automatically target all tracks
+* --step has been changed to --frame_step
+* --back_step has been changed to --seek_step, to accommodate forward steps
+* right arrow no longer advanced by 1 frame, now advanced by 1 sec
+* all tags are converted to lowercase, tags are to be considered case-insensitive from this point
+### Fixed
+* crash when q and shift+q was used without any quick tags.
 ### Minor
 * Reordered the argument aliases
 ## 0.6.3- 02/09/2018

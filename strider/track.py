@@ -41,7 +41,7 @@ class Track:
         ret = cls()
         ret.id = d['id']
         ret.color = tuple(d['color'])
-        ret.tags.update(d.get('tags', ()))
+        ret.tags.update(x.lower() for x in d.get('tags', ()))
 
         ret.points.update(d['points'])
         return ret
