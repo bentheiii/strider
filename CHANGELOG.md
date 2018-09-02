@@ -1,5 +1,11 @@
 #Strider
-## 0.6.3- unreleased
+## 0.6.4- unreleased
+### Added
+* Official copyright notice
+* README
+### Minor
+* Reordered the argument aliases
+## 0.6.3- 02/09/2018
 ### Added
 * added --raise flag to raise exceptions in normally catching environments (currently, only special command execution)
 * dev flag and warnings if strider is used in dev mode

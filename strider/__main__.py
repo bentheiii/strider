@@ -56,23 +56,24 @@ parser.add_argument('-t', '--tags', action='store', nargs='+', type=str, help='p
                     default=[], dest='quick_tags_path')
 parser.add_argument('--step', action='store', type=int, help='set the regular step speed in frames, default 1',
                     default=1, required=False, dest='step')
-parser.add_argument('--backstep', action='store', type=float,
+parser.add_argument('--back_step', '--backstep', action='store', type=float,
                     help='set the regular backwards step speed in seconds, default 1',
                     default=1, required=False, dest='back_step')
-parser.add_argument('--movestep', action='store', type=int,
+parser.add_argument('--move_step', '--movestep', action='store', type=int,
                     help='the size, in pixels, of movement of the zoomed view, default 10',
                     default=10, required=False, dest='move_step')
-parser.add_argument('--zoomstep', action='store', type=float, help='the zoom step, default x2',
+parser.add_argument('--zoom_step', '--zoomstep', action='store', type=float, help='the zoom step, default x2',
                     default=2, required=False, dest='zoom_step')
-parser.add_argument('--pointradius', '--point_radius', action='store', type=int, help='the radius of points, default 5',
+parser.add_argument('--point_radius', '--pointradius', action='store', type=int, help='the radius of points, default 5',
                     default=5, required=False, dest='point_radius')
-parser.add_argument('--linewidth', '--line_width', action='store', type=int, help='the width of lines, default 2',
+parser.add_argument('--line_width', '--linewidth', action='store', type=int, help='the width of lines, default 2',
                     default=2, required=False, dest='line_width')
-parser.add_argument('--forceflush', '--force_flush', action='store_true', dest='force_flush', required=False,
+parser.add_argument('--force_flush', '--forceflush', action='store_true', dest='force_flush', required=False,
                     default=False, help='set to force flushing on every frame (useful for 4k videos)')
 # raise is always true in dev mode
-parser.add_argument('--raise', action='store_true', default=__dev__, required=False, dest='raise_',
+parser.add_argument('--raise', action='store_true', default=strider.__dev__, required=False, dest='raise_',
                     help='raise and quit on exceptions that would normally be caught, use when debugging')
+
 # all options below here exit the program if used
 parser.add_argument('--calibrate', action=Calibrate, nargs='?', choices=['all'],
                     help='run the calibration process and exit,'
