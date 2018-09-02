@@ -307,6 +307,8 @@ def main(args=None):
             ('active track', view.active_track),
             ('video dimensions', view.real_view.size),
             ('video fps', view.fps),
+            ('view rectangle', repr(view.view_window)),
+            ('zoom', 'x'+str(view.real_view / view.view_window)),
             ('quick tags', ','.join(strider.tag_names(quick_tags))),
         )
         return 'INFO:\n' + '\n'.join(f'\t{n}: {v}' for n, v in d)

@@ -50,10 +50,18 @@ class Rectangle:
             return self
         return ret
 
+    def __truediv__(self, other: 'Rectangle'):
+        """
+        calculate the ratio of sizes between self and other.
+        already assumes the two rectangles have the same ratio, and only uses x
+        R / (R // x) == x
+        """
+        return self.size_x / other.size_x
+
     def undiv(self, other, master: 'Rectangle' = None):
         """
         note, if the new rectangle is outside master *in any way*, it returns master instead
-        the only guarantee is that if R < Master
+        the only guarantee is that if R < M:
         (R // n).undiv(n, M) == R
         """
         offset_coff = (other - 1) / 2
@@ -66,3 +74,6 @@ class Rectangle:
     @property
     def size(self):
         return self.size_x, self.size_y
+
+    def __repr__(self):
+        return f'Rectangle({self.offset_x}, {self.offset_y}, {self.size_x}, {self.size_y})'
