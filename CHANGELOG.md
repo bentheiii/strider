@@ -9,6 +9,8 @@
 * all deprecated arguments are now listed
 * info now also displays the view rectangle, and the zoom level
 * remove_tag special command
+* auto_play_wait argument
+* during calibration, pressing esc wil quit the calibration
 ### Changed
 * quick tags are now sorted and the keys are deterministic
 * q and shift+q used without quick tags now automatically target all tracks

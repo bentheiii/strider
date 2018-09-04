@@ -14,7 +14,7 @@ class StriderView:
     A bit of a borg class but it just co-ordinates between the video and the tracks so no real worries
     """
 
-    def __init__(self, *, pack_path=None, video_source_path, active_track=None, view_window: Rectangle=...
+    def __init__(self, *, pack_path=None, video_source_path, active_track=None, view_window: Rectangle = ...
                  , play_step_frame=1, seek_step_sec=1, line_width=2, point_radius=5, detection_radius: int = ...):
         self.play_step_frame = play_step_frame
         self.seek_step_seconds = seek_step_sec
@@ -161,7 +161,7 @@ class StriderView:
     def fore_step(self, amount=...):
         if amount is ...:
             amount = int(self.fps * self.seek_step_seconds)
-        next_frame_index = min(self.next_frame_index + amount, self.total_frames-1)
+        next_frame_index = min(self.next_frame_index + amount, self.total_frames - 1)
         self.seek(next_frame_index)
 
     def reset(self):
@@ -255,7 +255,10 @@ class StriderView:
                 self.track_pack.enable_track(self.active_track)
 
     def tracks_sorted(self):
+        # first yield the active track
+        # then the enabled tracks, sorted by id
+        # then the disabled tracks, sorted by id
         if self.active_track:
             yield self.active_track
-        yield from filter(lambda x: x is not self.active_track, sorted(self.track_pack.enabled()))
-        yield from sorted(self.track_pack.disabled())
+        yield from filter(lambda x: x is not self.active_track, sorted(self.track_pack.enabled(), key=lambda x: x.id))
+        yield from sorted(self.track_pack.disabled(), key=lambda x: x.id)

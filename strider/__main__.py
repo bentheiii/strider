@@ -14,6 +14,14 @@ if strider.__dev__:
     print('you are using a development version of strider, install and use a release version', file=sys.stderr)
 
 
+def pos_int(x):
+    """A converted to int that raises an exception if value is not positive"""
+    ret = int(x)
+    if ret <= 0:
+        raise ValueError('value must be at least 1')
+    return ret
+
+
 class Calibrate(argparse.Action):
     # calibrate action
     def __call__(self, parser_, namespace, values, option_string=None):
@@ -25,8 +33,13 @@ class Calibrate(argparse.Action):
             backspace_code = cv2.waitKeyEx()
             if backspace_code != Codes.backspace:
                 ret.append(f'\t"backspace": {backspace_code},')
+            print('enter esc')
+            esc_code = cv2.waitKeyEx()
+            if esc_code != Codes.esc:
+                ret.append(f'\t"esc": {esc_code}')
         else:
             backspace_code = Codes.backspace
+            esc_code = Codes.esc
 
         for name, v in Codes.__dict__.items():
             if name.startswith('_'):
@@ -34,10 +47,12 @@ class Calibrate(argparse.Action):
             if (not values == 'all') and v < 128:
                 continue
 
-            print(f'enter code for {name}, or backspace to not register this key')
+            print(f'enter code for {name}, backspace to not register this key, or esc to quit and save calibration')
             code = cv2.waitKeyEx()
             if code == backspace_code:
                 continue
+            elif code == esc_code:
+                break
             if code == v:
                 print(f'"{name}": {code!r}, same as default')
             else:
@@ -46,7 +61,7 @@ class Calibrate(argparse.Action):
         ret.append('}')
         with open('__calibration__.py', 'w') as w:
             w.write('\n'.join(ret))
-        print('calibration done!')
+        print('calibration saved to __calibration__.py')
         exit()
 
 
@@ -85,6 +100,9 @@ parser.add_argument('--point_radius', action='store', type=int, help='the radius
                     default=5, required=False, dest='point_radius')
 parser.add_argument('--line_width', action='store', type=int, help='the width of lines, default 2',
                     default=2, required=False, dest='line_width')
+parser.add_argument('--auto_play_wait', action='store', type=pos_int,
+                    help='the time to wait between auto-play frames, default is 5',
+                    default=5, required=False, dest='auto_play_wait')
 parser.add_argument('--force_flush', action='store_true', dest='force_flush', required=False,
                     default=False, help='set to force flushing on every frame (useful for 4k videos)')
 # raise is always true in dev mode
@@ -308,7 +326,7 @@ def main(args=None):
             ('video dimensions', view.real_view.size),
             ('video fps', view.fps),
             ('view rectangle', repr(view.view_window)),
-            ('zoom', 'x'+str(view.real_view.size_ratio(view.view_window))),
+            ('zoom', 'x' + str(view.real_view.size_ratio(view.view_window))),
             ('quick tags', ', '.join(strider.tag_names(quick_tags))),
         )
         return 'INFO:\n' + '\n'.join(f'\t{n}: {v}' for n, v in d)
@@ -320,7 +338,7 @@ def main(args=None):
         ]
         return '\n'.join(it.chain(
             additional_help,
-            (kc.__doc__ for kc in strider.KeyCommand.values_distinct())
+            (kc.__doc__ for kc in strider.KeyCommand.values())
         ))
 
     def report_jump(frame):
@@ -630,7 +648,7 @@ def main(args=None):
 
     while True:
         if auto_play:
-            key = cv2.waitKeyEx(1)
+            key = cv2.waitKeyEx(args.auto_play_wait)
             comm = strider.KeyCommand.get(key)  # comm will be None if no key button was pressed
             end_auto_play = comm and not comm.allow_on_auto_play
             if end_auto_play:
@@ -646,7 +664,7 @@ def main(args=None):
             key = cv2.waitKeyEx()
             comm = strider.KeyCommand.get(key)
             if not comm:
-                print('unhandled key code ' + str(key)
+                print('unhandled key code ' + str(key) + (f' (chr: {chr(key)!r} )' if 0 <= key <= 0x10ffff else '')
                       + ' if this is supposed to be a valid key, run the calibration command (strider --calibrate) '
                         'to run calibration')
             elif comm():

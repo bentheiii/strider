@@ -1,7 +1,5 @@
 from typing import Tuple, Set, Optional
 
-from functools import total_ordering
-
 from sortedcontainers import SortedDict
 
 
@@ -9,7 +7,6 @@ class PointOverrideException(Exception):
     pass
 
 
-@total_ordering
 class Track:
     @staticmethod
     def id(t):
@@ -120,6 +117,3 @@ class Track:
             else:
                 ret.extend([', ', k, ': ', str(v)])
         return ''.join(ret)
-
-    def __lt__(self, other):
-        return self.id < other.id
