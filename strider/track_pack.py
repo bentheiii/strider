@@ -5,6 +5,7 @@ import json
 from math import ceil
 
 from strider.track import Track
+from strider.__data__ import __version__
 
 
 class TrackPack:
@@ -23,6 +24,7 @@ class TrackPack:
 
     def to_dict(self):
         d = {
+            'strider_version': __version__,
             'tracks': [x.to_dict() for x in self.tracks.values()]
         }
         return d

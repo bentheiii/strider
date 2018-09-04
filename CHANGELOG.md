@@ -1,5 +1,5 @@
 #Strider
-## 0.6.4- unreleased
+## 0.6.4- 04/09/2018
 ### Added
 * Official copyright notice
 * README
@@ -11,6 +11,7 @@
 * remove_tag special command
 * auto_play_wait argument
 * during calibration, pressing esc wil quit the calibration
+* the strider version is now saved to the json file
 ### Changed
 * quick tags are now sorted and the keys are deterministic
 * q and shift+q used without quick tags now automatically target all tracks

@@ -65,9 +65,12 @@ The Output file (the track file given in the arguments) is meant to be easy to r
     * `"id"`: the unique name of the track (string)
     * `"color"`: the color to display in the OpenCV window (list of 3 ints in GRB format)
     * `"tags"`: a list of lowercase tags associated to the track
-    * `"point"`: a list of points of the track, each point is a list:
-        * `[0]`: the index of the frame where the point appeared
-        * `[1]`: a list representing the x, y coordinates of the point in pixels 
+    * `"points"`: a list of points of the track, each point is a list:
+        * `[0]`: the index of the frame where the point appeared (int)
+        * `[1]`: a list representing the x, y coordinates of the point in pixels (list of 2 ints)
+* `"strider_version`: a string representing the version with which the json file was saved.
+        
+NOTE: tracks saved on earlier versions of the program might be missing some attributes (specifically `tags` and `strider_version`). It is recommended to check at runtime whether attributes exist and substitute default value if not.
 
 ## Platform
 The program is tested on Windows 64bit, although no major issues are expected if run on other platforms.
