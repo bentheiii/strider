@@ -1,9 +1,12 @@
 #Strider
 ## 0.6.5- unreleased
 ## Added
-* links to required packages in README 
+* links to required packages in README
+* clarification about tag arguments in README 
 ## Removed
 * Manifest.in, turns out it's useless
+## Fixed
+* typos and minor edits in README
 
 ## 0.6.4- 04/09/2018
 ### Added
