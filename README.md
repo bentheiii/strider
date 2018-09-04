@@ -4,14 +4,18 @@
 Strider is a pure-python program and module to view and manually track objects along a video. Strider processes video using the OpenCV library
 ## Installation
 * Strider requires a python distribution of at least version 3.6
-* Strider requires both sortedContainers and openCV be installed in the python environment
+* Strider requires both [sortedContainers (minimum v2)][1] and [openCV (minimum v3)][2] be installed in the python environment (openCV also requires numpy)
+    ```text
+    pip install sortedcontainers
+    pip install opencv-python
+    ```
 * install the Strider module
     * If you have the setup.py file, run ```python setup.py install```
     * If you have access to the ```.whl``` file, run ```python -m pip install <.whl> file```
 * check that everything works with ```python -m strider --version```
 ## Running
 * Strider is a runnable module and can be run with ```python -m strider```
-* Strider takes 2 main arguments
+* Strider takes 2 main arguments:
     1. video source: A video file to be opened and run
     2. track file: A json file to load and store the tracks. This file need not exist at first 
 * run ```strider --help``` to see all arguments
@@ -79,3 +83,6 @@ The program is tested on Windows 64bit, although no major issues are expected if
 * When zoomed in, lines between points will only appear if at least one of the points is visible
 * When zooming out near the border of the video, the window will zoom out completely.
 * 4K videos will freeze unless run with the `--force_flush` argument
+
+[1]: https://pypi.org/project/sortedcontainers/
+[2]: https://pypi.org/project/opencv-python/

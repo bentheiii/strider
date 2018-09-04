@@ -1,4 +1,10 @@
 #Strider
+## 0.6.5- unreleased
+## Added
+* links to required packages in README 
+## Removed
+* Manifest.in, turns out it's useless
+
 ## 0.6.4- 04/09/2018
 ### Added
 * Official copyright notice
@@ -22,6 +28,7 @@
 * the tracks listed when using t are now sorted, first by active, then by enabled, then by id
 ### Fixed
 * crash when q and shift+q was used without any quick tags.
+
 ## 0.6.3- 02/09/2018
 ### Added
 * added --raise flag to raise exceptions in normally catching environments (currently, only special command execution)
