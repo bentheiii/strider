@@ -1,14 +1,22 @@
 #Strider
 ## 0.6.5- unreleased
 ## Added
-* links to required packages in README
-* clarification about tag arguments in README 
+* Links to required packages in README
+* Clarification about tag arguments in README 
+* Seek_time can now be entered with short syntax
+* Load args from file with prefix @
+## Changed
+* Date formats in the changelog to conform to ISO standard
+* Time displayed is now pretty (well, prettier)
 ## Removed
 * Manifest.in, turns out it's useless
+* Check for positive arguments. If users want to enter negative arguments, it's their funeral.
 ## Fixed
-* typos and minor edits in README
+* Typos and minor edits in README
+* Support for commands with multi-line descriptions
+* Deprecated arguments showed up in help
 
-## 0.6.4- 04/09/2018
+## 0.6.4- 2018-09-04
 ### Added
 * Official copyright notice
 * README
@@ -32,7 +40,7 @@
 ### Fixed
 * crash when q and shift+q was used without any quick tags.
 
-## 0.6.3- 02/09/2018
+## 0.6.3- 2018-09-02
 ### Added
 * added --raise flag to raise exceptions in normally catching environments (currently, only special command execution)
 * dev flag and warnings if strider is used in dev mode
@@ -47,7 +55,7 @@
 * Crash when zooming in too much
 * Importing calibration wouldn't work
 
-## 0.6.2- 28/08/18
+## 0.6.2- 2018-08-28
 ### Added
 * The t command also counts the tracks
 * All the Key commands are now registered, making managing them easier
@@ -60,7 +68,7 @@
 * -t flag can properly take multiple paths
 * parenthesis can now be entered in the input
 
-## 0.6.1- 27/08/18
+## 0.6.1- 2018-08-27
 ### Added
 * Tracks can now have tags
 * Quick Tags using the -t flag and the g keys

@@ -8,6 +8,10 @@ import inspect
 from strider.__util__ import *
 
 
+def clean_str(s):
+    return dedent(' '.join(s.strip().split()))
+
+
 class KeyCommand(Registry):
     """
     Commands bound to a key or keys
@@ -20,15 +24,15 @@ class KeyCommand(Registry):
         updates the __doc__ of a command with the names of the keys bound to it.
         Codes that have no name in the code_dict are ignored.
         """
-        # currently all key command docs are single-line, but let's future-proof
-        self.__doc__ = dedent(self.__doc__).strip()
+        self.__doc__ = clean_str(self.__doc__)
         if self.code_dict:
             # this seems pretty inefficient, but it's O(n^2) where n = number of key commands
             # doubling the number of commands currently: n=50, O(2500), doesn't even make a dent next to the stuff
-            # opencv does
+            # cv2 does
             for k, v in self.code_dict.items():
                 if v == self.key_code:
-                    self.__doc__ = pretty_key_name(k)+': '+self.__doc__
+                    self.__doc__ = pretty_key_name(k) + ': ' + self.__doc__
+                    break
 
     def register_key(self):
         return self.key_code
@@ -37,8 +41,8 @@ class KeyCommand(Registry):
         self.key_code = key_code
         update_wrapper(self, func)
         self.__func__ = func
-        self._update_doc()
         self.allow_on_auto_play = allow_on_auto_play
+        self._update_doc()
 
         super().__init__()
 
@@ -56,6 +60,9 @@ class SpecialCommand(Registry):
     A special command parsed and called with parameters
     """
     _func_call_master_pattern = re.compile('(?P<name>[a-z0-9_]+)((?P<full>\s*\(.*\))|(?P<short>\s+[^(].*)|)\s*')
+
+    def _update_doc(self):
+        self.__doc__ = self.__name__ + str(inspect.signature(self.__func__)) + ': ' + clean_str(self.__doc__)
 
     @classmethod
     def parse_func_call(cls, line):
@@ -86,7 +93,7 @@ class SpecialCommand(Registry):
     def __init__(self, func):
         update_wrapper(self, func)
         self.__func__ = func
-        self.__doc__ = self.__name__ + str(inspect.signature(self.__func__)) + ': ' + self.__doc__
+        self._update_doc()
 
         super().__init__()
 

@@ -97,6 +97,8 @@ class Track:
     def __str__(self):
         return f'Track({self.id})'
 
+    # todo distance (in pixels)?
+
     def stats(self, **kwargs: Optional[str]):
         """
         Get genric stats about the track

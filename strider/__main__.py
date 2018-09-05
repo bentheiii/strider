@@ -4,26 +4,25 @@ import importlib
 import warnings
 import sys
 import itertools as it
+import functools as ft
 from collections import ChainMap
 from collections.abc import Mapping
 
 import cv2
 import strider
+from strider.__util__ import *
 
 if strider.__dev__:
-    print('you are using a development version of strider, install and use a release version', file=sys.stderr)
-
-
-def pos_int(x):
-    """A converted to int that raises an exception if value is not positive"""
-    ret = int(x)
-    if ret <= 0:
-        raise ValueError('value must be at least 1')
-    return ret
+    print('you are using a development version of strider, install and use a release version unless'
+          ' you know what you are doing', file=sys.stderr)
 
 
 class Calibrate(argparse.Action):
     # calibrate action
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('default', argparse.SUPPRESS)
+        super().__init__(*args, **kwargs)
+
     def __call__(self, parser_, namespace, values, option_string=None):
         ret = ['__codes__ = {']
         cv2.imshow('calibration', 0)
@@ -71,6 +70,7 @@ class DeprecatedAction(argparse.Action):
     """
 
     def __init__(self, *args, use_instead: str, **kwargs):
+        kwargs.setdefault('help', argparse.SUPPRESS)
         super().__init__(*args, **kwargs)
         self.use_instead = use_instead
 
@@ -79,29 +79,30 @@ class DeprecatedAction(argparse.Action):
             f'{option_string} is deprecated, use {self.use_instead} instead, argument ignored'))
 
 
-parser = argparse.ArgumentParser('strider')
+parser = argparse.ArgumentParser('strider', fromfile_prefix_chars='@',
+                                 formatter_class=ft.partial(argparse.ArgumentDefaultsHelpFormatter, width=120))
 parser.add_argument('src_path', action='store', help='path to the source video')
 parser.add_argument('tracks_path', action='store', help='path to the trackpack file')
 parser.add_argument('-t', '--tags', action='store', nargs='+', type=str, help='path to a quick tags file',
                     required=False, default=[], dest='quick_tags_path')
 parser.add_argument('-qt', action='store', nargs='+', type=str, help='quick tags to add', required=False,
                     default=[], dest='quick_tags')
-parser.add_argument('--frame_step', action='store', type=int, help='set the regular play speed in frames, default 1',
+parser.add_argument('--frame_step', action='store', type=int, help='set the regular play speed in frames',
                     default=1, required=False, dest='step')
 parser.add_argument('--seek_step', action='store', type=float,
-                    help='set the regular step in seconds, default 1',
+                    help='set the regular step in seconds',
                     default=1, required=False, dest='seek_step')
 parser.add_argument('--move_step', action='store', type=int,
-                    help='the size, in pixels, of movement of the zoomed view, default 10',
+                    help='the size, in pixels, of movement of the zoomed view',
                     default=10, required=False, dest='move_step')
-parser.add_argument('--zoom_step', action='store', type=float, help='the zoom step, default x2',
+parser.add_argument('--zoom_step', action='store', type=float, help='the zoom step',
                     default=2, required=False, dest='zoom_step')
-parser.add_argument('--point_radius', action='store', type=int, help='the radius of points, default 5',
+parser.add_argument('--point_radius', action='store', type=int, help='the radius of points',
                     default=5, required=False, dest='point_radius')
-parser.add_argument('--line_width', action='store', type=int, help='the width of lines, default 2',
+parser.add_argument('--line_width', action='store', type=int, help='the width of lines',
                     default=2, required=False, dest='line_width')
-parser.add_argument('--auto_play_wait', action='store', type=pos_int,
-                    help='the time to wait between auto-play frames, default is 5',
+parser.add_argument('--auto_play_wait', action='store', type=int,
+                    help='the time to wait between auto-play frames',
                     default=5, required=False, dest='auto_play_wait')
 parser.add_argument('--force_flush', action='store_true', dest='force_flush', required=False,
                     default=False, help='set to force flushing on every frame (useful for 4k videos)')
@@ -320,8 +321,8 @@ def main(args=None):
             ('source tracks', args.tracks_path),
             ('next frame', view.next_frame_index),
             ('total frames', view.total_frames),
-            ('current time (approx)', view.curr_time_approx()),
-            ('total time (approx)', view.total_time_approx()),
+            ('current time (approx)', ts_to_str(*view.curr_time_approx())),
+            ('total time (approx)', ts_to_str(*view.total_time_approx())),
             ('active track', view.active_track),
             ('video dimensions', view.real_view.size),
             ('video fps', view.fps),
@@ -334,7 +335,8 @@ def main(args=None):
     def help_msg():
         additional_help = [
             "left click: add a point, at the current frame, to the active track",
-            "right click: list the point(s) at the clicked area"
+            "right click: list the point(s) at the clicked area",
+            ""
         ]
         return '\n'.join(it.chain(
             additional_help,
@@ -342,7 +344,7 @@ def main(args=None):
         ))
 
     def report_jump(frame):
-        print(f'jumped to frame {frame}, approx {view.approx_frame_to_time(frame,True)} time')
+        print(f'jumped to frame {frame}, approx {ts_to_str(*view.approx_frame_to_time(frame,True))}')
 
     @strider.SpecialCommand
     def toggle_track(tid):
@@ -377,6 +379,10 @@ def main(args=None):
         """Jump to a specific time in seconds"""
         if isinstance(seconds, str):
             seconds = int(seconds)
+        if isinstance(minutes, str):
+            minutes = int(minutes)
+        if isinstance(hours, str):
+            minutes = int(hours)
         seconds += minutes * 60 + hours * 60 * 60
 
         frame_ind = int(seconds * view.fps)
@@ -610,7 +616,8 @@ def main(args=None):
 
     @strider.key_command(Codes.tab)
     def start_auto_play():
-        """Enable auto-play, will continue the video until a key is pressed. Some keys (zoom, move zoomed rectangle, ...) will not stop the autoplay"""
+        """Enable auto-play, will continue the video until a key is pressed.
+         Some keys (zoom, move zoomed rectangle, ...) will not stop the auto-play."""
         nonlocal auto_play
         auto_play = True
         print("started auto-play, press tab again to end")

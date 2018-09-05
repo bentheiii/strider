@@ -49,9 +49,12 @@ class Registry(ABC):
 def pretty_key_name(n: str):
     """
     Attempts to prettify key names.
+    capital <x>-> shift+<x>
     shift_* -> shift+*
     {direction} -> {direction} arrow
     """
+    if len(n) == 1 and n.isupper():
+        return 'shift+' + n.lower()
     if n.startswith('shift_'):
         return 'shift+' + n[len('shift_'):]
     if n in ('left', 'right', 'up', 'down'):
@@ -59,4 +62,11 @@ def pretty_key_name(n: str):
     return n
 
 
-__all__ = ['Registry', 'pretty_key_name']
+def ts_to_str(hour, minute, second, ms):
+    s = format(second, '02') + format(ms,'.3g')[1:]
+    if hour > 0:
+        return f'{hour}:{minute:02}:{s}'
+    return f'{minute:02}:{s}'
+
+
+__all__ = ['Registry', 'pretty_key_name', 'ts_to_str']

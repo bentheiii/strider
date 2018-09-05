@@ -70,10 +70,10 @@ class StriderView:
         if t is None:
             self.active_track = None
             return None
-        # we loosely expect the rule that the active track is enabled, so we enforce it here
         if isinstance(t, str):
             t = self.track_pack[t]
         self.active_track = t
+        # we loosely expect the rule that the active track is enabled, so we enforce it here
         self.track_pack.enable_track(t)
         return t
 
