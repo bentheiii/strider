@@ -1,19 +1,23 @@
-# Strider
+# Strider Changelog
+## unreleased
+### Changed
+* merge_tracks: rule notifications now display the track's original id.
+
 ## 0.7.0- 2018-09-19 
-## Added
+### Added
 * Links to required packages in README
 * Clarification about tag arguments in README 
 * Seek_time can now be entered with short syntax
 * Load args from file with prefix @
 * Added the merge_tracks module
 * Trackpacks now remember their source file if one is provided
-## Changed
+### Changed
 * Date formats in the changelog to conform to ISO standard
 * Time displayed is now pretty (well, prettier)
-## Removed
+### Removed
 * Manifest.in, turns out it's useless
 * Check for positive arguments. If users want to enter negative arguments, it's their funeral.
-## Fixed
+### Fixed
 * Typos and minor edits in README
 * Support for commands with multi-line descriptions
 * Deprecated arguments showed up in help

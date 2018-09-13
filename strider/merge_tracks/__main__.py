@@ -41,11 +41,12 @@ def main(args=None):
             print(f'{len(rules)} rules total')
 
     def apply_rules(track, pack):
+        original_id = track.id
         for rule in rules:
             changed, track = rule(track, pack)
             if changed:
                 if not args.silent_rules:
-                    print(f'{track} @ {pack.name}: Rule {rule.name}')
+                    print(f'Track({original_id}) @ {pack.name}: Rule {rule.name}')
                 break
         return track
 
