@@ -1,19 +1,29 @@
 import argparse
 import warnings
+from enum import Enum, auto
 
 import strider
 from strider.merge_tracks import load_rule_file, SKIP
+
+
+class OnConflict(Enum):
+    random = auto()
+    prompt = auto()
+    error = auto()
+
 
 parser = argparse.ArgumentParser('strider.merge_tracks', fromfile_prefix_chars='@',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 parser.add_argument('dst', action='store', help='the destination file')
 parser.add_argument('sources', action='store', nargs='+', help='the source files to merge')
-parser.add_argument('-r', action='appending', dest='rule_paths'
+parser.add_argument('-r', action='append', dest='rule_paths'
                     , help='add a python file with special rules for merging')
 
-parser.add_argument('--on_conflict', action='store', choices=('raise', 'prompt', 'auto'), default='auto',
-                    help='how to behave when an id conflict occurs', dest='on_conflict')  # todo enum
+parser.add_argument('--on_conflict', action='store', default=OnConflict.random,
+                    help='how to behave when an id conflict occurs', type=OnConflict.__getitem__, dest='on_conflict')
+parser.add_argument('--silent_rules', action='store_true', default=False, dest='silent_rules',
+                    help='if set, all rules will not print anything when triggered')
 
 
 def main(args=None):
@@ -34,7 +44,8 @@ def main(args=None):
         for rule in rules:
             changed, track = rule(track, pack)
             if changed:
-                print(f'{track} @ {pack.name}: Rule {rule.name}')  # todo flag to disable this
+                if not args.silent_rules:
+                    print(f'{track} @ {pack.name}: Rule {rule.name}')
                 break
         return track
 
@@ -42,18 +53,18 @@ def main(args=None):
     dst.name = dst
 
     def handle_conflict(track):
-        if args.on_conflict == 'raise':
+        if args.on_conflict == OnConflict.error:
             raise Exception(f'ID conflict: track with id {track.id} already exists in destination')
-        elif args.on_conflict == 'prompt':
+        elif args.on_conflict == OnConflict.prompt:
             new_id = input(f'track with id {track.id} already exists in destination,'
                            f' enter a new id (leave blank for auto):\n')
             track.id = new_id or dst.new_id()
-        elif args.on_conflict == 'auto':
+        elif args.on_conflict == OnConflict.random:
             new_id = dst.new_id()
             print(f'track with id {track.id} already exists in destination, new_id: {new_id}')
             track.id = new_id
         else:
-            raise Exception('unhandled on_conflict value')
+            assert False
 
     for src_path in args.sources:
         with open(src_path) as r:
@@ -63,7 +74,7 @@ def main(args=None):
             track = apply_rules(track, src)
             if track == SKIP:
                 continue
-            while track.id in dst.tracks:
+            while track.id in dst.tracks:  # in case of OnConflict.prompt, its possible to have two conflicts in a row
                 handle_conflict(track)
             dst.add_track(track)
 
@@ -71,6 +82,7 @@ def main(args=None):
         dst.write(w)
 
     print(f'merged {len(args.sources)} track packs (total {len(dst.tracks)} tracks)')
+
 
 if __name__ == '__main__':
     main()

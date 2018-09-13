@@ -1,10 +1,12 @@
 #Strider
-## 0.6.5- unreleased
+## 0.7.0 - unreleased
 ## Added
 * Links to required packages in README
 * Clarification about tag arguments in README 
 * Seek_time can now be entered with short syntax
 * Load args from file with prefix @
+* Added the merge_tracks module
+* Trackpacks now remember their source file if one is provided
 ## Changed
 * Date formats in the changelog to conform to ISO standard
 * Time displayed is now pretty (well, prettier)

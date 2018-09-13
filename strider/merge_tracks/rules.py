@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Pattern, Callable, Union
+from typing import Optional, Tuple, Pattern, Union
 
 from abc import ABC, abstractmethod
 from copy import copy
@@ -24,23 +24,47 @@ class Trigger:
             return self.__func__(track)
 
     def __and__(self, other):
-        return type(self)(lambda *a, **k: self(*a, **k) and other(*a, **k))
+        """
+        get a trigger that is only triggered if both triggers are met
+        """
+        other = trigger(other)
+        return trigger(lambda *a, **k: self(*a, **k) and other(*a, **k))
 
     def __or__(self, other):
-        return type(self)(lambda *a, **k: self(*a, **k) or other(*a, **k))
+        """
+        get a trigger that is only triggered if either triggers are met
+        """
+        other = trigger(other)
+        return trigger(lambda *a, **k: self(*a, **k) or other(*a, **k))
 
     def __xor__(self, other):
-        return type(self)(lambda *a, **k: self(*a, **k) ^ other(*a, **k))
+        """
+        get a trigger that is only triggered if only one of triggers are met
+        """
+        other = trigger(other)
+        return trigger(lambda *a, **k: self(*a, **k) ^ other(*a, **k))
 
     def __invert__(self):
-        return type(self)(lambda *a, **k: not self(*a, **k))
+        """
+        get a trigger that is only triggered if this trigger is not met
+        """
+        return trigger(lambda *a, **k: not self(*a, **k))
 
     def __rshift__(self, other):
+        """
+        create a rule with other as the rule
+        """
         return rule(self, other)
 
 
 @overload
 def trigger(*args, **kwargs) -> Trigger:
+    """
+    create a trigger, acceptable inputs:
+    trigger(function)-> a trigger wrapping the function
+    trigger(trigger)-> the same trigger
+    trigger(bool)-> a trigger that always fails or passes
+    """
     return Trigger(*args, **kwargs)
 
 
@@ -66,17 +90,34 @@ class Action:
         return ret
 
     def then(self, other):
-        return type(self)(lambda x: other(self(x)))
+        """
+        activate another action after this one
+        """
+        other = action(other)
+        return action(lambda x: other(self(x)))
 
     def after(self, other):
-        return type(self)(lambda x: self(other(x)))
+        """
+        activate another action before this one
+        """
+        other = action(other)
+        return action(lambda x: self(other(x)))
 
     def __rrshift__(self, other):
+        """
+        create a rule with other as the trigger
+        """
         return rule(other, self)
 
 
 @overload
 def action(*args, **kwargs) -> Action:
+    """
+    create an action, acceptable inputs:
+    action(function)-> a action wrapping the function
+    action(action)-> the same action
+    action('SKIP')-> an action that always returns 'SKIP'
+    """
     return Action(*args, **kwargs)
 
 
@@ -136,11 +177,18 @@ class FuncRule(Rule):
 
 @overload
 def rule(*args, **kwargs) -> Rule:
+    """
+    create an rule, acceptable inputs:
+    rule(trigger, action)-> a rule activating the action if the trigger passes
+    rule(function)-> a rule wrapping the function
+    rule(rule)-> the same rule
+    rule(tuple)->rule(*tuple)
+    """
     return ComboRule(*args, **kwargs)
 
 
 @rule.register
-def _(func: object, **kwargs):
+def _(func, **kwargs):
     return FuncRule(func, **kwargs)
 
 
@@ -159,6 +207,10 @@ def _(r: Rule, name=None):
 
 # region common
 def source_re(r: Union[str, Pattern]):
+    """
+    Creates a trigger that only passes if the source file path matches the regex pattern provided.
+    Will pass if the pattern fully matches either the full path, the file name, or the file name without extension
+    """
     r = re.compile(r)
 
     @trigger
@@ -172,15 +224,21 @@ def source_re(r: Union[str, Pattern]):
     return ret
 
 
-def has_tag(t: str):
+def has_tag(*tags: str):
+    """
+    Creates a trigger that only passes if the track has any of the tags in the arguments
+    """
     @trigger
     def ret(track):
-        return t in track.tags
+        return any(t in track.tags for t in tags)
 
     return ret
 
 
 def add_tags(*tags):
+    """
+    Create an action that adds tags to the track
+    """
     @action
     def ret(track):
         track.tags.update(tags)
@@ -189,6 +247,9 @@ def add_tags(*tags):
 
 
 def change_id(*, prefix='', postfix=''):
+    """
+    Create an action that adds a prefix and postfix to the track's id
+    """
     @action
     def ret(track):
         track.id = prefix + track.id + postfix
