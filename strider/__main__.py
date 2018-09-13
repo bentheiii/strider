@@ -4,7 +4,6 @@ import importlib
 import warnings
 import sys
 import itertools as it
-import functools as ft
 from collections import ChainMap
 from collections.abc import Mapping
 
@@ -80,7 +79,7 @@ class DeprecatedAction(argparse.Action):
 
 
 parser = argparse.ArgumentParser('strider', fromfile_prefix_chars='@',
-                                 formatter_class=ft.partial(argparse.ArgumentDefaultsHelpFormatter, width=120))
+                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('src_path', action='store', help='path to the source video')
 parser.add_argument('tracks_path', action='store', help='path to the trackpack file')
 parser.add_argument('-t', '--tags', action='store', nargs='+', type=str, help='path to a quick tags file',
@@ -106,6 +105,7 @@ parser.add_argument('--auto_play_wait', action='store', type=int,
                     default=5, required=False, dest='auto_play_wait')
 parser.add_argument('--force_flush', action='store_true', dest='force_flush', required=False,
                     default=False, help='set to force flushing on every frame (useful for 4k videos)')
+
 # raise is always true in dev mode
 parser.add_argument('--raise', action='store_true', default=strider.__dev__, required=False, dest='raise_',
                     help='raise and quit on exceptions that would normally be caught, use when debugging')

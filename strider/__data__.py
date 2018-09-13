@@ -1,4 +1,4 @@
-__version__ = '0.6.5a.dev'
+__version__ = '0.7.0.dev'
 __author__ = 'ben avrahami'
 __copyright__ = 'Copyright (c) 2018 Ben Avrahami'
 __homepage__ = 'https://github.com/bentheiii/strider'

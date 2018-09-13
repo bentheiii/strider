@@ -1,4 +1,4 @@
-from typing import Union, Iterable, Tuple, MutableMapping
+from typing import Union, Iterable, Tuple, MutableMapping, Optional
 
 import random
 import json
@@ -14,6 +14,7 @@ class TrackPack:
         # by default, all tracks are disabled, use enable_all to enable all track at once
         self._enabled_tracks: MutableMapping[str, Track] = {}
         self.tracks: MutableMapping[str, Track] = {}
+        self.name: Optional[str] = None
 
     def __getitem__(self, item):
         if isinstance(item, str):

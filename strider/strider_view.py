@@ -29,9 +29,10 @@ class StriderView:
         if not self.video_source.isOpened():
             raise Exception("Error opening video stream")
 
-        if pack_path and os.path.isfile(pack_path):
+        if pack_path:
             with open(pack_path) as r:
                 self.track_pack = TrackPack.read(r)
+            self.track_pack.name = pack_path
         else:
             self.track_pack = TrackPack()
 
