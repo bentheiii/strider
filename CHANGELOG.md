@@ -1,5 +1,5 @@
-#Strider
-## 0.7.0 - unreleased
+# Strider
+## 0.7.0- 2018-09-19 
 ## Added
 * Links to required packages in README
 * Clarification about tag arguments in README 
