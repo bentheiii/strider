@@ -19,10 +19,10 @@ The program also takes a `-r <python file>` that lists custom rules to be applie
 from strider.merge_tracks import trigger, action, rule
 
 @trigger
-def starts_at_0(track, pack):
+def starts_at_0(track, source_pack, destination_pack):
     return track.points.keys()[0] == 0
 @action
-def clear_tags(track):
+def clear_tags(track, source_pack, destination_pack):
     track.tags.clear()
     # if an action doesn't return anything, then the input track is treated as the return value 
     
@@ -35,11 +35,11 @@ rule_0 = starts_at_0 >> clear_tags
 # also, all variables that are annotated with the string 'rule'
 
 # equivalent to the above, without importing anything
-rule_0: 'rule' = (lambda track: track.points.keys()[0] == 0, lambda track: track.tags.clear())
+rule_0: 'rule' = (lambda track, *_: track.points.keys()[0] == 0, lambda track, *_: track.tags.clear())
 
 # rules can also be done with a single declaration
 @rule
-def rule_0(track):
+def rule_0(track, *_):
     if track.points.keys()[0] == 0:
         track.tags.clear()
         return True  # single-declaration rules must explicitly return true or the new track if the rule is applied
@@ -47,7 +47,7 @@ def rule_0(track):
 
 # equivalent
 rule_0 : 'rule'
-def rule_0(track):
+def rule_0(track, *_):
     if track.points.keys()[0] == 0:
         track.tags.clear()
         return True
@@ -55,7 +55,7 @@ def rule_0(track):
 
 # if an action returns merge_tracks.SKIP or the string 'SKIP', the track is ignored
 @trigger
-def has_ignore_tag(track):
+def has_ignore_tag(track, *_):
     return 'ignore' in track.tags
 
 # ignore all tracks that have the "ignore" tag
@@ -68,3 +68,7 @@ rule_2 = (source_re('bees') & has_tag('queen')) >> 'SKIP'
 rule_3 = source_re('ants?') >> add_tags('ant').then(change_id(prefix='a_'))
 ```
 Note that only the first rule that matches will be applied to each track. Actions can be chained using the `then` and `after` functions. 
+
+Although rule files are the recommended way to add rules. It is also possible to add inline rules using the `-ir` argument. The following will add a rule that prepends all tracks with the 't' prefix:
+
+`strider.merge_tracks <...> -ir True>>change_id(prefix='t')`

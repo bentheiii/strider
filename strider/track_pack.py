@@ -9,12 +9,12 @@ from strider.__data__ import __version__
 
 
 class TrackPack:
-    def __init__(self):
+    def __init__(self, name=None):
         # enabled_tracks is a subset of tracks
         # by default, all tracks are disabled, use enable_all to enable all track at once
         self._enabled_tracks: MutableMapping[str, Track] = {}
         self.tracks: MutableMapping[str, Track] = {}
-        self.name: Optional[str] = None
+        self.name: Optional[str] = name
 
     def __getitem__(self, item):
         if isinstance(item, str):
@@ -31,8 +31,8 @@ class TrackPack:
         return d
 
     @classmethod
-    def from_dict(cls, d):
-        ret = cls()
+    def from_dict(cls, d, **kwargs):
+        ret = cls(**kwargs)
         for t in d.get('tracks', ()):
             track = Track.from_dict(t)
             ret.tracks[track.id] = track
@@ -42,8 +42,9 @@ class TrackPack:
         json.dump(self.to_dict(), dst, indent=1)
 
     @classmethod
-    def read(cls, src):
-        return cls.from_dict(json.load(src))
+    def read(cls, src, **kwargs):
+        return cls.from_dict(json.load(src), **kwargs)
+
 
     def enable_track(self, track_or_id: Union[Track, str]):
         track_or_id = Track.id(track_or_id)

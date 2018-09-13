@@ -1,7 +1,15 @@
 # Strider Changelog
 ## unreleased
+### Added
+* merge_tracks: added the -ir argument for inline rules
+* merge_tracks: action(None) now results in an action that does nothing (useful for default rules)
+* merge_tracks: default rule that accepts all and does nothing
+* merge_tracks: members in rule files annotated with __rule do not undergo conversion to a rule
+* merge_tracks: members in rule files annotated with rules or __rules are added as iterables of rules
+* merge_tracks: both actions and triggers now accept the track, source pack, and destination pack.
 ### Changed
-* merge_tracks: rule notifications now display the track's original id.
+* merge_tracks: rule notifications now display the track's original id, as well as well as the output
+* Better handling of trackpack's source
 
 ## 0.7.0- 2018-09-19 
 ### Added

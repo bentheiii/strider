@@ -1,0 +1,6 @@
+strider
+/dist
+/resources
+strider.egg-info
+/record.txt
+/.idea

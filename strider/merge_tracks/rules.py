@@ -17,11 +17,8 @@ class Trigger:
         functools.update_wrapper(self, func)
         self.__func__ = func
 
-    def __call__(self, track, pack):
-        try:
-            return self.__func__(track, pack)
-        except TypeError:
-            return self.__func__(track)
+    def __call__(self, track, src_pack, dst_pack):
+        return self.__func__(track, src_pack, dst_pack)
 
     def __and__(self, other):
         """
@@ -75,7 +72,7 @@ def _(t: Trigger):
 
 @trigger.register
 def _(b: bool):
-    return trigger(lambda x: b)
+    return trigger(lambda *_: b)
 
 
 class Action:
@@ -83,8 +80,8 @@ class Action:
         functools.update_wrapper(self, func)
         self.__func__ = func
 
-    def __call__(self, track):
-        ret = self.__func__(track)
+    def __call__(self, track, src_pack, dst_pack):
+        ret = self.__func__(track, src_pack, dst_pack)
         if ret is None:
             ret = track
         return ret
@@ -94,14 +91,14 @@ class Action:
         activate another action after this one
         """
         other = action(other)
-        return action(lambda x: other(self(x)))
+        return action(lambda *a: other(self(*a), *a[1:]))
 
     def after(self, other):
         """
         activate another action before this one
         """
         other = action(other)
-        return action(lambda x: self(other(x)))
+        return other.then(self)
 
     def __rrshift__(self, other):
         """
@@ -117,6 +114,7 @@ def action(*args, **kwargs) -> Action:
     action(function)-> a action wrapping the function
     action(action)-> the same action
     action('SKIP')-> an action that always returns 'SKIP'
+    action(None)-> an action that doesn't change the track at all
     """
     return Action(*args, **kwargs)
 
@@ -133,13 +131,21 @@ def _(a: str):
     raise ValueError(f'{a!r} not valid for action')
 
 
+@action.register
+def _(x: None):
+    return action(lambda t, *_: t)
+
+
 class Rule(ABC):
     def __init__(self, name: Optional[str] = None):
         self.name = name
 
     @abstractmethod
-    def __call__(self, track: strider.Track, pack: strider.TrackPack) -> Tuple[bool, strider.Track]:
+    def __call__(self, track: strider.Track, src_pack: strider.TrackPack, dst_pack: strider.TrackPack) -> Tuple[bool, strider.Track]:
         pass
+
+    def __str__(self):
+        return str(self.name)
 
 
 class ComboRule(Rule):
@@ -148,9 +154,9 @@ class ComboRule(Rule):
         self.trigger = trigger(trigger_)
         self.action = action(action_)
 
-    def __call__(self, track, pack):
-        if self.trigger(track, pack):
-            return True, self.action(track)
+    def __call__(self, track, src_pack, dst_pack):
+        if self.trigger(track, src_pack, dst_pack):
+            return True, self.action(track, src_pack, dst_pack)
         else:
             return False, track
 
@@ -161,11 +167,8 @@ class FuncRule(Rule):
         functools.update_wrapper(self, func)
         self.__func__ = func
 
-    def __call__(self, track, pack):
-        try:
-            result = self.__func__(track, pack)
-        except TypeError:
-            result = self.__func__(track)
+    def __call__(self, track, src_pack, dst_pack):
+        result = self.__func__(track, src_pack, dst_pack)
 
         if not result:
             return False, track
@@ -214,7 +217,7 @@ def source_re(r: Union[str, Pattern]):
     r = re.compile(r)
 
     @trigger
-    def ret(t, p):
+    def ret(t, p, d):
         return any(r.fullmatch(k) for k in (
             p.name,
             os.path.basename(p.name),
@@ -228,8 +231,9 @@ def has_tag(*tags: str):
     """
     Creates a trigger that only passes if the track has any of the tags in the arguments
     """
+
     @trigger
-    def ret(track):
+    def ret(track, p, d):
         return any(t in track.tags for t in tags)
 
     return ret
@@ -239,8 +243,9 @@ def add_tags(*tags):
     """
     Create an action that adds tags to the track
     """
+
     @action
-    def ret(track):
+    def ret(track, p, d):
         track.tags.update(tags)
 
     return ret
@@ -250,9 +255,13 @@ def change_id(*, prefix='', postfix=''):
     """
     Create an action that adds a prefix and postfix to the track's id
     """
+
     @action
-    def ret(track):
+    def ret(track, p ,d):
         track.id = prefix + track.id + postfix
 
     return ret
+
+
+default = rule(True, None, name='default')
 # endregion

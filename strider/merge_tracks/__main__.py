@@ -1,9 +1,10 @@
 import argparse
 import warnings
 from enum import Enum, auto
+import pprint
 
 import strider
-from strider.merge_tracks import load_rule_file, SKIP
+from strider.merge_tracks import load_rule_file, load_inline_rule, SKIP, Rule
 
 
 class OnConflict(Enum):
@@ -12,13 +13,14 @@ class OnConflict(Enum):
     error = auto()
 
 
-parser = argparse.ArgumentParser('strider.merge_tracks', fromfile_prefix_chars='@',
-                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser = argparse.ArgumentParser('strider.merge_tracks', fromfile_prefix_chars='@')
 
 parser.add_argument('dst', action='store', help='the destination file')
 parser.add_argument('sources', action='store', nargs='+', help='the source files to merge')
-parser.add_argument('-r', action='append', dest='rule_paths'
-                    , help='add a python file with special rules for merging')
+parser.add_argument('-r', action='append', dest='rule_paths', default=[],
+                    help='add a python file with special rules for merging')
+parser.add_argument('-ir', action='append', dest='inline_rules', default=[],
+                    help='an a single-line special rule')
 
 parser.add_argument('--on_conflict', action='store', default=OnConflict.random,
                     help='how to behave when an id conflict occurs', type=OnConflict.__getitem__, dest='on_conflict')
@@ -35,23 +37,31 @@ def main(args=None):
             if not to_add:
                 warnings.warn('no rules detected in file ' + p)
             else:
-                print(f'{len(to_add)} rules in {p}')
+                print(f'{len(to_add)} rules in {p} ({", ".join(str(x) for x in to_add)})')
             rules.extend(to_add)
-        if len(args.rule_paths) > 1:
-            print(f'{len(rules)} rules total')
+    if args.inline_rules:
+        for i in args.inline_rules:
+            rule = load_inline_rule(i)
+            if not isinstance(rule, Rule):
+                warnings.warn('inline value "' + i + '" is not evaluated as a rule, but as a ' + str(type(rule)))
+            elif rule.name is None:
+                rule.name = 'eval(' + i + ')'
+            rules.append(rule)
+        print(f'{len(args.inline_rules)} inline rules')
+    if len(args.rule_paths) + len(args.inline_rules) > 1:
+        print(f'{len(rules)} rules total')
 
-    def apply_rules(track, pack):
+    dst = strider.TrackPack(name=args.dst)
+
+    def apply_rules(track, src):
         original_id = track.id
         for rule in rules:
-            changed, track = rule(track, pack)
+            changed, track = rule(track, src, dst)
             if changed:
                 if not args.silent_rules:
-                    print(f'Track({original_id}) @ {pack.name}: Rule {rule.name}')
+                    print(f'Rule {rule}(Track({original_id}) @ {src.name}) -> {track} @ {dst.name}')
                 break
         return track
-
-    dst = strider.TrackPack()
-    dst.name = dst
 
     def handle_conflict(track):
         if args.on_conflict == OnConflict.error:
@@ -69,8 +79,7 @@ def main(args=None):
 
     for src_path in args.sources:
         with open(src_path) as r:
-            src = strider.TrackPack.read(r)
-            src.name = src_path
+            src = strider.TrackPack.read(r, name=src_path)
         for track in src.tracks.values():
             track = apply_rules(track, src)
             if track == SKIP:

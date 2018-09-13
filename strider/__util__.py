@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from inspect import signature
 import functools
 
+
 class Registry(ABC):
     """
     An ABC for creating a class that keeps track of all its instances via a dict.
@@ -79,6 +80,8 @@ class Candidate:
             pass
         if callable(annot):
             return annot(o)
+        if annot in (None, ..., NotImplemented):
+            return o is annot
         raise TypeError(f"can't handle annotation {annot}")
 
     def __init__(self, func):
@@ -117,7 +120,7 @@ class overload:
 
     def dispatch(self, *args, **kwargs):
         return next((c for c in reversed(self.candidates)
-                    if c.match(args, kwargs)), None)
+                     if c.match(args, kwargs)), None)
 
     def __call__(self, *args, **kwargs):
         d = self.dispatch(*args, **kwargs)

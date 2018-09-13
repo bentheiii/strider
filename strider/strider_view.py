@@ -31,10 +31,9 @@ class StriderView:
 
         if pack_path:
             with open(pack_path) as r:
-                self.track_pack = TrackPack.read(r)
-            self.track_pack.name = pack_path
+                self.track_pack = TrackPack.read(r, name=pack_path)
         else:
-            self.track_pack = TrackPack()
+            self.track_pack = TrackPack(name=pack_path)
 
         self.next_frame_index = 0
         w = self.video_source.get(cv2.CAP_PROP_FRAME_WIDTH)
