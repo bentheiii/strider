@@ -1,6 +1,7 @@
 # Strider Changelog
-## unreleased
+## 0.7.1- 2018-11-12
 ### Added
+* tracks details now also list distance in pixels
 * merge_tracks: added the -ir argument for inline rules
 * merge_tracks: action(None) now results in an action that does nothing (useful for default rules)
 * merge_tracks: default rule that accepts all and does nothing

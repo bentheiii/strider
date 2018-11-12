@@ -97,6 +97,18 @@ class Track:
     def __str__(self):
         return f'Track({self.id})'
 
+    def distance(self):
+        """
+        :return: the distance of the path, in pixels
+        """
+        ret = 0
+        prev = None
+        for x, y in self.points.values():
+            if prev:
+                ret += ((x - prev[0]) ** 2 + (y - prev[1]) ** 2) ** 0.5
+            prev = (x, y)
+        return ret
+
     # todo distance (in pixels)?
 
     def stats(self, **kwargs: Optional[str]):
@@ -111,6 +123,7 @@ class Track:
             ret.extend([', frame range: ', str(self.key_span()), ', value range: ', str(self.value_span()), ])
         if self.tags:
             ret.extend([', tags: ', '[', ', '.join(self.tags), ']'])
+        ret.extend([', distance: ', str(int(self.distance())), 'px'])
         for k, v in kwargs.items():
             if not v:
                 continue
