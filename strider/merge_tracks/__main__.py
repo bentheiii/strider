@@ -79,7 +79,7 @@ def main(args=None):
 
     for src_path in args.sources:
         with open(src_path) as r:
-            src = strider.TrackPack.read(r, name=src_path)
+            src = strider.TrackPack.read(r)
         for track in src.tracks.values():
             track = apply_rules(track, src)
             if track == SKIP:

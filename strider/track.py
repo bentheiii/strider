@@ -67,7 +67,7 @@ class Track:
 
     def del_point_floor(self, frame):
         """
-        Deletes the first point that occurs before the frmae
+        Deletes the first point that occurs before the frame
         :returns: the deleted point, or None if no points were deleted
         """
         k = next(iter(self.points.irange(None, frame, reverse=True)), None)
@@ -108,8 +108,6 @@ class Track:
                 ret += ((x - prev[0]) ** 2 + (y - prev[1]) ** 2) ** 0.5
             prev = (x, y)
         return ret
-
-    # todo distance (in pixels)?
 
     def stats(self, **kwargs: Optional[str]):
         """

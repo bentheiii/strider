@@ -9,12 +9,13 @@ from strider.__data__ import __version__
 
 
 class TrackPack:
-    def __init__(self, name=None):
+    def __init__(self, name=None, video_path=None):
         # enabled_tracks is a subset of tracks
         # by default, all tracks are disabled, use enable_all to enable all track at once
         self._enabled_tracks: MutableMapping[str, Track] = {}
         self.tracks: MutableMapping[str, Track] = {}
         self.name: Optional[str] = name
+        self.video_path: Optional[str] = video_path
 
     def __getitem__(self, item):
         if isinstance(item, str):
@@ -23,15 +24,35 @@ class TrackPack:
             return item
         raise TypeError
 
+    def all_tags(self):
+        ret = set()
+        for t in self.tracks.values():
+            ret.update(t.tags)
+        return ret
+
+    def has_tag(self, tag):
+        for t in self.tracks.values():
+            if t in t.tags:
+                return True
+        return False
+
     def to_dict(self):
         d = {
             'strider_version': __version__,
+            'video_path': self.video_path,
             'tracks': [x.to_dict() for x in self.tracks.values()]
         }
         return d
 
     @classmethod
     def from_dict(cls, d, **kwargs):
+        for key in ('video_path', 'name'):
+            if key in kwargs:
+                continue
+            if key not in d:
+                continue
+            kwargs[key] = d[key]
+
         ret = cls(**kwargs)
         for t in d.get('tracks', ()):
             track = Track.from_dict(t)
@@ -44,7 +65,6 @@ class TrackPack:
     @classmethod
     def read(cls, src, **kwargs):
         return cls.from_dict(json.load(src), **kwargs)
-
 
     def enable_track(self, track_or_id: Union[Track, str]):
         track_or_id = Track.id(track_or_id)

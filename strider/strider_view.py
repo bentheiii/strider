@@ -1,5 +1,6 @@
+from typing import Optional
+
 import random
-import os.path
 
 import cv2
 
@@ -14,8 +15,9 @@ class StriderView:
     A bit of a borg class but it just co-ordinates between the video and the tracks so no real worries
     """
 
-    def __init__(self, *, pack_path=None, video_source_path, active_track=None, view_window: Rectangle = ...
-                 , play_step_frame=1, seek_step_sec=1, line_width=2, point_radius=5, detection_radius: int = ...):
+    def __init__(self, *, track_pack: Optional[TrackPack] = None, video_source_path, active_track=None,
+                 view_window: Rectangle = ..., play_step_frame=1, seek_step_sec=1, line_width=2, point_radius=5,
+                 detection_radius: int = ...):
         self.play_step_frame = play_step_frame
         self.seek_step_seconds = seek_step_sec
         self.video_source = cv2.VideoCapture(video_source_path)
@@ -29,11 +31,7 @@ class StriderView:
         if not self.video_source.isOpened():
             raise Exception("Error opening video stream")
 
-        if pack_path:
-            with open(pack_path) as r:
-                self.track_pack = TrackPack.read(r, name=pack_path)
-        else:
-            self.track_pack = TrackPack(name=pack_path)
+        self.track_pack = track_pack
 
         self.next_frame_index = 0
         w = self.video_source.get(cv2.CAP_PROP_FRAME_WIDTH)
@@ -70,8 +68,8 @@ class StriderView:
         if t is None:
             self.active_track = None
             return None
-        if isinstance(t, str):
-            t = self.track_pack[t]
+        if isinstance(t, (str, int)):
+            t = self.track_pack[str(t)]
         self.active_track = t
         # we loosely expect the rule that the active track is enabled, so we enforce it here
         self.track_pack.enable_track(t)
@@ -258,7 +256,15 @@ class StriderView:
         # first yield the active track
         # then the enabled tracks, sorted by id
         # then the disabled tracks, sorted by id
-        if self.active_track:
-            yield self.active_track
-        yield from filter(lambda x: x is not self.active_track, sorted(self.track_pack.enabled(), key=lambda x: x.id))
-        yield from sorted(self.track_pack.disabled(), key=lambda x: x.id)
+        groups = [
+            ('ACTIVE', [self.active_track] if self.active_track else []),
+            (
+                'ENABLED',
+                [x for x in sorted(self.track_pack.enabled(), key=lambda x: x.id) if x is not self.active_track]
+            ),
+            ('DISABLED', sorted(self.track_pack.disabled(), key=lambda x: x.id))
+        ]
+        for name, g in groups:
+            if g:
+                yield name
+                yield from g

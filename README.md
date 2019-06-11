@@ -29,17 +29,9 @@ Strider is a pure-python program and module to view and manually track objects a
     3. Active: The track is shown on the screen, and is also the track to be edited when editing occurs. There need not be an active track, but there can only be one active track at a time.
 ### Tags
 * Tracks can have tags that make categorizing them easier.
-* Each track can have any subset of tags.
+* Each track can have any number of tags.
 * Tags are simply strings and can be of any form, although all tags are converted to lowercase.
-    * It is highly recommended that tags have at least one english letter.
-* Aside from this, a program can have quick tags. These are tags that can be quickly applied and filtered.
-    * Quick tags can be added as an argument with the argument `-qt`. Example: `-qt bee fly butterfly`
-    * Quick tags can also be loaded from a file with the argument `-t`. Example: `-t tags.txt` Where tags.txt can be:
-        ```text
-        fly
-        bee
-        bumble bee
-        ```
+    * It is highly recommended that tags be alphanumeric english
 ### Using
 * The program produces two windows, one displaying the video and the tracks, the other (the standard output stream/ console) providing text feedback.
 * Pressing `h` at any point displays all the commands and keys available.
@@ -48,7 +40,8 @@ Strider is a pure-python program and module to view and manually track objects a
     * `right click`: print data of the the point(s) clicked.
     * `space`: advance to the next frame of the video.
     * `n`: create a new track with a random id and color and activate it.
-    * `g`: add a tag, from the quick tags, to the active track.
+    * `g`: add a tag to the active track.
+    * `shift+g`: remove a tag from the active track
     * `u`: delete the most recent point from the active track. Only deletes the last VISIBLE point from the active track.
     * `z`: zoom in on the video.
     * `shift+z`: zoom out on the video.
@@ -73,8 +66,9 @@ The Output file (the track file given in the arguments) is meant to be easy to r
         * `[0]`: the index of the frame where the point appeared (int)
         * `[1]`: a list representing the x, y coordinates of the point in pixels (list of 2 ints)
 * `"strider_version"`: a string representing the version with which the json file was saved.
+* `"video_path"`: the path to video file used to make the tracks
         
-NOTE: tracks saved on earlier versions of the program might be missing some attributes (specifically `tags` and `strider_version`). It is recommended to check at runtime whether attributes exist and substitute default value if not.
+NOTE: tracks saved on earlier versions of the program might be missing some attributes (specifically `tags`, `strider_version`, and `video_path`). It is recommended to check at runtime whether attributes exist and substitute default value if not.
 
 ## Platform
 The program is tested on Windows 10 64bit, although no major issues are expected if run on other platforms.

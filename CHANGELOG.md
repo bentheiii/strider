@@ -1,4 +1,20 @@
 # Strider Changelog
+## 0.8.0- unreleased
+### Changed
+* in main: input the tracks file and video file arguments have been switched, this is to better accommodate embedding the video in the trackpack.
+* The entire concept of tags has been overhauled, instead of a drop-down menu, now there's an autocomplete input, and quick tags are automatically added and removed by input.
+* The help for commands now displays accurate values
+### Added
+* activate() now accepts int ids
+* the trackpack file can now contain a default video source
+* if a video or trackpack file is not provided in the arguments, a selection dialog will be issued using Tkinter
+* added shift+g command to remove a tag
+* special commands now have autocomplete
+### Fixed
+* if a trackpack file does not exist, an empty one will be created
+### Removed
+* `--force_flush`: the value is now automatically calculated on whether we're using a 4k source
+
 ## 0.7.1- 2018-11-12
 ### Added
 * tracks details now also list distance in pixels

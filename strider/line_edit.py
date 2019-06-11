@@ -1,7 +1,6 @@
-from typing import List
+from typing import List, Iterable
 
-from io import StringIO
-
+import cv2
 
 class LineEdit:
     """
@@ -9,7 +8,8 @@ class LineEdit:
     """
 
     # NOTE: for now, this is untested on Linux
-    def __init__(self, report=False):
+    def __init__(self, report=False, autocomplete: Iterable[str] = ()):
+        self.autocomplete_candidates = autocomplete
         self.cursor = chr(9608)
         self.buffer: List[str] = []
         self.next_ind = 0
@@ -33,14 +33,10 @@ class LineEdit:
         if not self.report:
             return
         if not cursor:
-            self._print_clear('\x0d', self.getvalue(),)
+            self._print_clear('\x0d', self.getvalue(), )
         else:
             self._print_clear('\x0d', ''.join(self.buffer[:self.next_ind]), self.cursor,
-                              ''.join(self.buffer[self.next_ind:]),)
-        # else:
-        #    self._print_clear('\x0d', ''.join(self.buffer[:self.next_ind]), '(', self.buffer[self.next_ind], ')',
-        #                      ''.join(self.buffer[self.next_ind + 1:]),
-        #                      end='', flush=True, sep='')
+                              ''.join(self.buffer[self.next_ind:]), )
 
     def feed(self, chars: str):
         """
@@ -90,7 +86,6 @@ class LineEdit:
             print()
         return self.getvalue()
 
-
     def home(self):
         self.next_ind = 0
         self._report()
@@ -98,3 +93,44 @@ class LineEdit:
     def end(self):
         self.next_ind = len(self.buffer)
         self._report()
+
+    def autocomplete(self):
+        value = self.getvalue()
+        candidate = None
+        for autocomplete_candidate in self.autocomplete_candidates:
+            if autocomplete_candidate.startswith(value):
+                if candidate:
+                    return None
+                else:
+                    candidate = autocomplete_candidate
+        if candidate:
+            self.feed(candidate[len(value):])
+
+    def cv_input(self, prompt, codes, on_cancel = None):
+        print(prompt)
+        while True:
+            code = cv2.waitKeyEx()
+            if code == codes.backspace:
+                self.backspace()
+            elif code == codes.enter:
+                ret = self.enter()
+                break
+            elif code == codes.esc:
+                if self.report:
+                    print('..cancelled')
+                ret = on_cancel
+                break
+            elif code == codes.right:
+                self.right()
+            elif code == codes.left:
+                self.left()
+            elif code == codes.home:
+                self.home()
+            elif code == codes.end:
+                self.end()
+            elif code == codes.tab:
+                self.autocomplete()
+            elif code < 128:
+                c = chr(code)
+                self.feed(c)
+        return ret

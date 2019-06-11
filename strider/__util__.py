@@ -129,4 +129,18 @@ class overload:
         return d.func(*args, **kwargs)
 
 
-__all__ = ['Registry', 'pretty_key_name', 'ts_to_str', 'overload']
+class BoolBox:
+    def __init__(self, neutral_value: bool = False):
+        self.value = self.neutral_value = neutral_value
+
+    def __bool__(self):
+        return self.value
+
+    def __enter__(self):
+        self.value = not self.neutral_value
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.value = self.neutral_value
+
+
+__all__ = ['Registry', 'pretty_key_name', 'ts_to_str', 'overload', 'BoolBox']
