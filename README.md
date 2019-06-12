@@ -1,7 +1,9 @@
 # Strider
-(c) 2018 Ben Avrahami
+(c) 2019 Ben Avrahami
 ## About
 Strider is a pure-python program and module to view and manually track objects along a video. Strider processes video using the OpenCV library.
+## Running Standalone
+Strider is now released as a standalone executable. simply download the latest release, and run it.
 ## Installation
 * Strider requires a python distribution of at least version 3.6
 * Strider requires both [sortedContainers (minimum v2)][1] and [openCV (minimum v3)][2] be installed in the python environment (openCV also requires numpy)
@@ -13,7 +15,7 @@ Strider is a pure-python program and module to view and manually track objects a
     * If you have the setup.py file, run `python setup.py install`
     * If you have access to the `.whl` file, run `pip install <.whl file>`
 * check that everything works with `python -m strider --version`
-## Running
+### Running From Wheel
 * Strider is a runnable module and can be run with `python -m strider`
 * Strider takes 2 main arguments:
     1. video source: A video file to be opened and run

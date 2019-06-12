@@ -60,7 +60,7 @@ def maybe_import(module_name, var_name, var_type=object, default=None, report=Tr
         spec = importlib.util.spec_from_file_location('', '__calibration__.py')
         if not spec:
             return default
-    except ImportError:
+    except (ImportError, FileNotFoundError):
         return default
 
     mod = importlib.util.module_from_spec(spec)
