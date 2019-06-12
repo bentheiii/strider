@@ -212,8 +212,18 @@ def main(args=None):
         f'track {tid} toggled'
 
     @strider.SpecialCommand
-    def activate(tid):
-        """Activate a track"""
+    def activate(tid=...):
+        """Activate a track. By default, activates the only enable track"""
+        if tid is ...:
+            enabled = iter(track_pack.enabled())
+            cand = next(enabled, None)
+            if cand is None:
+                print('no enabled tracks')
+                return
+            if next(enabled, None):
+                print('multiple enabled tracks')
+                return
+            tid = cand
         t = view.activate_track(tid)
         print(f'track {t} active!')
 
@@ -277,12 +287,12 @@ def main(args=None):
             tid = ...
         tag = tag.lower()
         t, tag = view.remove_tag(tid, tag=tag)
-        if t:
+        if tag:
             print(f'tag {tag} removed from {t}')
+            if not track_pack.has_tag(tag):
+                quick_tags.remove(tag)
         else:
-            print(f'track {t} doesn\'t have tag {tag}')
-        if not track_pack.has_tag(tag):
-            quick_tags.remove(tag)
+            print(f'track {t} doesn\'t have tag {tag}, it has: {t.tags}')
 
     @strider.SpecialCommand
     def enable_tag(tag):

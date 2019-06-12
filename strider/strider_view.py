@@ -166,6 +166,11 @@ class StriderView:
         self.seek(0)
 
     def seek(self, next_frame_ind):
+        if next_frame_ind < 0:
+            next_frame_ind = 0
+        if next_frame_ind > self.total_frames:
+            next_frame_ind = self.total_frames
+
         self.next_frame_index = next_frame_ind
         self.video_source.set(cv2.CAP_PROP_POS_FRAMES, next_frame_ind)
         self.this_frame = None

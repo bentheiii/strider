@@ -10,8 +10,10 @@
 * if a video or trackpack file is not provided in the arguments, a selection dialog will be issued using Tkinter
 * added shift+g command to remove a tag
 * special commands now have autocomplete
+* `activate` special command can now receive now arguments and will activate the only enabled track, if available
 ### Fixed
 * if a trackpack file does not exist, an empty one will be created
+* can no longer jump to negative times
 ### Removed
 * `--force_flush`: the value is now automatically calculated on whether we're using a 4k source
 

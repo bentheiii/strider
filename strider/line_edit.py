@@ -15,7 +15,6 @@ class LineEdit:
         self.next_ind = 0
         self.report = report
         self.prev_printed = 0  # the length of the previously printed message (so we can clear it)
-        self._report()
 
     def _print_clear(self, *args):
         """
@@ -108,6 +107,7 @@ class LineEdit:
 
     def cv_input(self, prompt, codes, on_cancel = None):
         print(prompt)
+        self._report()
         while True:
             code = cv2.waitKeyEx()
             if code == codes.backspace:
