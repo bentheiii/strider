@@ -56,6 +56,9 @@ parser.add_argument('--version', action='version', version=strider.__version__)
 
 
 def maybe_import(module_name, var_name, var_type=object, default=None, report=True, **kwargs):
+    if not path.exists('__calibration__.py'):
+        return default
+
     try:
         spec = importlib.util.spec_from_file_location('', '__calibration__.py')
         if not spec:

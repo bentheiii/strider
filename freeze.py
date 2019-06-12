@@ -7,7 +7,7 @@ single_file = True
 name_prefix = 'strider-'
 icon_path = r'icon.ico'
 
-prefix = ['python -O -m PyInstaller strider/__main__.py']
+prefix = ['python -O -m PyInstaller strider/__main__.py --specpath build/specs']
 
 name = name_prefix + strider.__version__
 prefix.append('-n "' + name + '"')
