@@ -8,6 +8,8 @@ import json
 import itertools as it
 import os.path as path
 
+from sys import exit
+
 import cv2
 import strider
 from strider import TrackPack
@@ -55,7 +57,7 @@ parser.add_argument('--version', action='version', version=strider.__version__)
 
 def maybe_import(module_name, var_name, var_type=object, default=None, report=True, **kwargs):
     try:
-        spec = importlib.util.find_spec(module_name)
+        spec = importlib.util.spec_from_file_location('', '__calibration__.py')
         if not spec:
             return default
     except ImportError:

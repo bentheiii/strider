@@ -9,7 +9,7 @@ from strider.cv_codes import Codes, CalibrateAction
 
 __dev__ = "dev" in __version__
 
-# todo freeze
+# todo calibration doesn't work when frozen
 # todo change all prints to log?
 
 # todo autosave?
