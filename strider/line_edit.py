@@ -1,6 +1,8 @@
+from os.path import commonprefix
 from typing import List, Iterable
 
 import cv2
+
 
 class LineEdit:
     """
@@ -95,17 +97,21 @@ class LineEdit:
 
     def autocomplete(self):
         value = self.getvalue()
-        candidate = None
+        auto = None
         for autocomplete_candidate in self.autocomplete_candidates:
             if autocomplete_candidate.startswith(value):
-                if candidate:
-                    return None
+                if auto:
+                    cand = autocomplete_candidate[len(value):]
+                    auto = commonprefix([cand, auto])
                 else:
-                    candidate = autocomplete_candidate
-        if candidate:
-            self.feed(candidate[len(value):])
+                    auto = autocomplete_candidate[len(value):]
 
-    def cv_input(self, prompt, codes, on_cancel = None):
+                if not auto:
+                    return
+        if auto:
+            self.feed(auto)
+
+    def cv_input(self, prompt, codes, on_cancel=None):
         print(prompt)
         self._report()
         while True:
